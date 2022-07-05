@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+// import * as THREE from 'three';
 
 var socket = io();
 let nScreens;
@@ -39,10 +39,28 @@ socket.on('update', (screenData) => {
 
 socket.on('start', (superRes) => {
     console.log('screen' + screen + ' ready');
+    
+
     fullWidth = superRes.width;
     fullHeight = window.innerHeight;
 
-    startX = Math.floor(screen / 2) * window.innerWidth * (screen % 2 != 0 ? -1 : 1);
+    // calculate each screen startX
+    let scRes = superRes.child;
+
+    startX = 0;
+    // right side screen
+    if(screen % 2 == 0) {
+        startX = scRes[1];
+        for(let index = 2; index < screen; index+=2) {
+            startX += scRes[index];
+        }
+    }else {
+        for(let index = 3; index <= screen; index+=2) {
+            startX -= scRes[index];
+        }
+    }
+
+    // startX = Math.floor(screen / 2) * window.innerWidth * (screen % 2 != 0 ? -1 : 1);
 
     console.log('superRes: (' + fullWidth + ',' + fullHeight + ')');
     console.log('StartX: ' + startX + ' StartY: ' + startY);
@@ -50,7 +68,6 @@ socket.on('start', (superRes) => {
     init();
     animate();
 });
-
 
 
 socket.on('updateMouse', (mouse) => {
@@ -61,9 +78,10 @@ socket.on('updateMouse', (mouse) => {
     mouseY = mouse.mousey;
 });
 
+
 socket.on('updatePosScreen', (pos) => {
     if (screen == 1) return;
-    camera.position.x = pos.x;
+    camera.position.z = pos.x;
 });
 
 window.onload = function () {
@@ -74,19 +92,20 @@ const onDocumentKeyDown = (event) => {
 
     if (screen != 1) return;
 
+    console.log('ZOOM');
     var keyCode = event.which;
     if (keyCode == 87) { // w
-        camera.position.y -= 5;
+        camera.position.z += 100;
     } else if (keyCode == 83) { // s
-        camera.position.y += 5;
-    } else if (keyCode == 65) { // a
-        camera.position.x += 5;
-    } else if (keyCode == 68) { // d
-        camera.position.x -= 5;
+        camera.position.z -= 100;
+    // } else if (keyCode == 65) { // a
+    //     camera.position.x += 5;
+    // } else if (keyCode == 68) { // d
+    //     camera.position.x -= 5;
     } else return
 
     socket.emit('updatePos', {
-        x: camera.position.x
+        x: camera.position.z
     });
 }
 
@@ -104,15 +123,15 @@ function View(canvas, fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight
 
     const context = canvas.getContext('2d');
 
-    // const camera = new THREE.PerspectiveCamera( 20, (viewWidth/3) / (viewHeight), 1, 10000 );
+    camera = new THREE.PerspectiveCamera( 20, (viewWidth) / (viewHeight), 1, 10000 );
 
     // Orthographic Camera
-    camera = new THREE.OrthographicCamera
-        (-viewWidth / 4, viewWidth, viewHeight, -viewHeight, 1, 10000);
+    // camera = new THREE.OrthographicCamera
+    //     (-viewWidth / 4, viewWidth, viewHeight, -viewHeight, 1, 10000);
 
     // set camera first adjustements
     camera.setViewOffset(fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight);
-    camera.position.z = 1800; // 1800
+    camera.position.z = 1000; // 1800
     camera.position.x += (mouseX - camera.position.x) * 0.05;
     camera.position.y += (- mouseY - camera.position.y) * 0.05;
     // camera.lookAt( scene.position );
@@ -147,7 +166,7 @@ function init() {
     views.push(new View(canvas1, fullWidth, fullHeight, startX, 0, canvas1.clientWidth, canvas1.clientHeight));
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    scene.background = new THREE.Color(0x202020);
 
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 0, 1).normalize();
@@ -174,7 +193,7 @@ function init() {
     // context.fillStyle = gradient;
     // context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // const noof_balls = 1;
+    // const noof_balls = 10;
     // const radius = 100;
 
     // const geometry1 = new THREE.IcosahedronGeometry(radius, 1);
@@ -213,23 +232,23 @@ function init() {
 
     // }
 
+    // END EXAMPLE ICOSAEDRON
+
     try {
         const loader = new THREE.GLTFLoader();
-        // // Load a glTF resource
+        // Load a glTF resource
         loader.load(
             // resource URL
             'models/scene.gltf',
             // called when the resource is loaded
             function (gltf) {
-
+                
+                gltf.scene.rotation.x = Math.PI / 3;
+                gltf.scene.position.x -= 100;
+                console.log('ChessPosition: ' + gltf.scene.position.x);
+                console.log(gltf.scene);
                 scene.add(gltf.scene);
                 camera.lookAt( scene.position );
-
-                // gltf.animations; // Array<THREE.AnimationClip>
-                // gltf.scene; // THREE.Group
-                // gltf.scenes; // Array<THREE.Group>
-                // gltf.cameras; // Array<THREE.Camera>
-                // gltf.asset; // Object
 
             },
             // called while loading is progressing
@@ -246,7 +265,6 @@ function init() {
     } catch(err) {
         console.log('ERROR\n',err)
     }
-    
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);

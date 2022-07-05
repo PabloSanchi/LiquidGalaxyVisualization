@@ -20,7 +20,7 @@ const port = 3001;
 // Setup files to be sent on connection
 const filePath = "/public" // Do not add '/' at the end
 const vFile = "index.html"
-const pruebas =  "multiple.html";
+const pruebas = "multiple.html";
 const controllerFile = "controller/index.html"
 
 // varibles
@@ -53,12 +53,12 @@ app.get('/:id', (req, res) => {
     //         </body>
     //         `);
     // else {
-        if (id == "controller") {
-            res.sendFile(__dirname + `${filePath}/${controllerFile}`);
-        } else {
-            screenNumber = id
-            res.sendFile(__dirname + `${filePath}/${pruebas}`);
-        }
+    if (id == "controller") {
+        res.sendFile(__dirname + `${filePath}/${controllerFile}`);
+    } else {
+        screenNumber = id
+        res.sendFile(__dirname + `${filePath}/${pruebas}`);
+    }
     // }
 });
 
@@ -67,19 +67,19 @@ io.on('connect', socket => {
     // console.log(Object.keys(screens));
 
     // if(!(Object.keys(screens).includes(screenNumber.toString()))) {
-        
+
     //     if(socket.handshake.query.mobile != 'true')
     //         screens[screenNumber] = socket;
     // }else {
     //     socket.disconnect()
     // }
-    
+
     console.log(`User connected with id ${socket.id}`);
 
     // join the room taking care of the type (mobile or screen)
-    if(socket.handshake.query.mobile == 'true') {
+    if (socket.handshake.query.mobile == 'true') {
         socket.join('mobile');
-    }else {
+    } else {
         socket.join('screen');
     }
 
@@ -88,7 +88,7 @@ io.on('connect', socket => {
         console.log('user left');
     });
 
-    
+
     io.to('screen').emit('update', {
         id: screenNumber
     })
@@ -97,22 +97,27 @@ io.on('connect', socket => {
         superRes[data.id] = data.width;
         activeScreens++;
 
-        if(activeScreens == nScreens) {
+        if (activeScreens == nScreens) {
             let r = 0;
-            for(let i = 1; i <= Object.keys(superRes).length; ++i) {
-                r += superRes[i];
-                console.log(`screen ${i}: ${superRes[i]}`);
-            }
+            // for (let i = 1; i <= Object.keys(superRes).length; ++i) {
+            //     r += superRes[i];
+            //     console.log(`screen ${i}: ${superRes[i]}`);
+            // }
+
+            Object.entries(superRes).forEach(res => {
+                r += res[1];
+            });
 
             console.log('sending start signal');
 
             io.to('screen').emit('start', {
                 width: r,
-                height: 0
+                height: 0,
+                child: superRes,
             })
         }
     });
-    
+
     // recieve coordinates from the master
     socket.on('updateScreens', (mouse) => {
         io.to('screen').emit('updateMouse', mouse);
