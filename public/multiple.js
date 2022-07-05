@@ -10,6 +10,9 @@ let fullHeight = 1;
 let startX = 0;
 let startY = 0;
 let camera;
+let chessboard;
+let white = [];
+let orange = [];
 
 
 socket.on('updateScreen', (coords) => {
@@ -50,7 +53,7 @@ Start visulization when the server gives the signal to do so
 */
 socket.on('start', (superRes) => {
     console.log('screen' + screen + ' ready');
-    
+
     // super resolution width and height
     fullWidth = superRes.width;
     fullHeight = window.innerHeight;
@@ -64,13 +67,13 @@ socket.on('start', (superRes) => {
     startX = 0;
 
     // right side screens
-    if(screen % 2 == 0) {
+    if (screen % 2 == 0) {
         startX = scRes[1];
-        for(let index = 2; index < screen; index+=2) {
+        for (let index = 2; index < screen; index += 2) {
             startX += scRes[index];
         }
-    }else { // left side screens
-        for(let index = 3; index <= screen; index+=2) {
+    } else { // left side screens
+        for (let index = 3; index <= screen; index += 2) {
             startX -= scRes[index];
         }
     }
@@ -154,7 +157,7 @@ function View(canvas, fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight
 
     const context = canvas.getContext('2d');
 
-    camera = new THREE.PerspectiveCamera( 20, (viewWidth) / (viewHeight), 1, 10000 );
+    camera = new THREE.PerspectiveCamera(20, (viewWidth) / (viewHeight), 1, 10000);
 
     // Orthographic Camera
     // camera = new THREE.OrthographicCamera
@@ -162,7 +165,7 @@ function View(canvas, fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight
 
     // set camera offset
     camera.setViewOffset(fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight);
-    
+
     // camera default position
     camera.position.z = 1000; // default camera z index pos
     camera.position.x += (mouseX - camera.position.x) * 0.05;
@@ -212,13 +215,40 @@ function init() {
             'models/scene.gltf',
             // called when the resource is loaded
             function (gltf) {
-                
-                gltf.scene.rotation.x = Math.PI / 3;
-                gltf.scene.position.x -= 100;
-                console.log('ChessPosition: ' + gltf.scene.position.x);
-                console.log(gltf.scene);
-                scene.add(gltf.scene);
-                camera.lookAt( scene.position );
+
+                chessboard = gltf.scene;
+                chessboard.rotation.x = Math.PI / 3;
+
+                // chessboard.position.x -= 100;
+
+                console.log('ChessPosition: ' + chessboard.position.x);
+
+                console.log('chess:', chessboard);
+
+
+                // 1 white
+                chessboard.children[0].children[0].children[0].children[1].children.forEach((piece) => {
+                    piece.children[0].material.color.setHex(0xDDDDDD);
+                    white.push(piece);
+                });
+
+
+                // 2 orange
+                chessboard.children[0].children[0].children[0].children[2].children.forEach((piece) => {
+                    piece.children[0].material.color.setHex(0x606060);
+                    orange.push(piece);
+                });
+
+
+
+                chessboard.children[0].children[0].children[0].children[4].children[0].children[0].material.color.setHex(0xC28A6E);
+
+                chessboard.children[0].children[0].children[0].children[4].children[1].children[0].material.color.setHex(0xA0A0A0);
+                chessboard.children[0].children[0].children[0].children[4].children[1].children[1].material.color.setHex(0x101010);
+
+                // add chessboard to the main scene
+                scene.add(chessboard);
+                camera.lookAt(chessboard.position);
 
             },
             // called while loading is progressing
@@ -230,8 +260,8 @@ function init() {
                 console.log('An error happened');
             }
         );
-    } catch(err) {
-        console.log('ERROR\n',err)
+    } catch (err) {
+        console.log('ERROR\n', err)
     }
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
