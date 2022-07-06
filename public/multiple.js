@@ -1,5 +1,6 @@
 // import * as THREE from 'three';
 
+/* VARIABLE DEFINITION */
 var socket = io();
 let nScreens;
 let screen;
@@ -12,9 +13,54 @@ let startY = 0;
 let camera;
 let chessboard;
 let white = [];
-let orange = [];
+let black = [];
+
+let whiteNaming = {
+    'k': 0, // king
+    'q': 1, // queen
+    'b1': 2, // bishop
+    'n1': 3, // knight
+    'r1': 4, // rook
+    'p15': 5,
+    'p14': 6,
+    'p13': 7,
+    'p12': 8,
+    'p11': 9,
+    'p10': 10,
+    'p9': 11,
+    'p8': 12,
+    'r2': 13, // rook
+    'n2': 14, // knight
+    'b2': 15 // bishop
+}
+
+let blackNaming = {
+    'b1': 0, // bishop
+    'n1': 1, // knight
+    'r1': 2, // rook
+    'p7': 3,
+    'p6': 4,
+    'p5': 5,
+    'p4': 6,
+    'p3': 7,
+    'p2': 8,
+    'p1': 9,
+    'p0': 10,
+    'r2': 11, // rook
+    'n2': 12, // knight
+    'b2': 13, // bishop
+    'q': 14, // queen
+    'k': 15, // king
+}
+
+let deadWhite = new Array(16);
+let deadBlack = new Array(16);
+let status = Array(8).fill(0).map(x => Array(8).fill(null)); // 2d array
+
+/* END VARIABLE DEFINITION */
 
 
+/* SOCKET INFORMATION EXCHANGE */
 socket.on('updateScreen', (coords) => {
     if (screen == 1) return; // do not update the master screen
 
@@ -85,6 +131,7 @@ socket.on('start', (superRes) => {
 
     // start animation
     init();
+    addSphere();
     animate();
 });
 
@@ -130,12 +177,19 @@ const onDocumentKeyDown = (event) => {
     });
 }
 
-// variables
+
+/* SOCKET INFORMATION EXCHANGE */
+
+/* VARIABLES FOR THREE JS */
+
 const views = [];
 let scene, renderer;
 let mouseX = 0, mouseY = 0;
 const windowHalfX = window.innerWidth / 2;
 const windowHalfY = window.innerHeight / 2;
+let stars = [];
+
+/* END VARIABLES FOR THREE JS */
 
 
 /*
@@ -184,6 +238,10 @@ function View(canvas, fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight
     };
 }
 
+
+/*
+init -> initialize the scene and renderer (printing the chessboard, start position by default)
+*/
 function init() {
 
     const canvas1 = document.getElementById('canvas1');
@@ -200,12 +258,11 @@ function init() {
     views.push(new View(canvas1, fullWidth, fullHeight, startX, 0, canvas1.clientWidth, canvas1.clientHeight));
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x202020);
+    scene.background = new THREE.Color(0x000000);
 
     const light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(0, 0, 1).normalize();
+    light.position.set(0, 0, 10).normalize();
     scene.add(light);
-
 
     try {
         const loader = new THREE.GLTFLoader();
@@ -219,10 +276,11 @@ function init() {
                 chessboard = gltf.scene;
                 chessboard.rotation.x = Math.PI / 3;
 
-                // chessboard.position.x -= 100;
+                chessboard.position.x -= 100;
+
+                light.position.set(10, 100, 200).normalize();
 
                 console.log('ChessPosition: ' + chessboard.position.x);
-
                 console.log('chess:', chessboard);
 
 
@@ -233,22 +291,30 @@ function init() {
                 });
 
 
-                // 2 orange
+                // 2 black
                 chessboard.children[0].children[0].children[0].children[2].children.forEach((piece) => {
                     piece.children[0].material.color.setHex(0x606060);
-                    orange.push(piece);
+                    black.push(piece);
                 });
 
+                // Border chessboard color
+                chessboard.children[0].children[0].children[0].children[4].children[0].children[0].material.color.setHex(0xFFFFFF);
 
+                // White squares color
+                chessboard.children[0].children[0].children[0].children[4].children[1].children[0].material.color.setHex(0xF2C886);
 
-                chessboard.children[0].children[0].children[0].children[4].children[0].children[0].material.color.setHex(0xC28A6E);
+                // Black squares color
+                chessboard.children[0].children[0].children[0].children[4].children[1].children[1].material.color.setHex(0xCF9218);
 
-                chessboard.children[0].children[0].children[0].children[4].children[1].children[0].material.color.setHex(0xA0A0A0);
-                chessboard.children[0].children[0].children[0].children[4].children[1].children[1].material.color.setHex(0x101010);
 
                 // add chessboard to the main scene
                 scene.add(chessboard);
                 camera.lookAt(chessboard.position);
+
+                printFen('4k2r/6r1/8/8/8/8/3R4/R3K3');
+                // printFen('8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8');
+                // printFen('rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R');
+                // printFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
             },
             // called while loading is progressing
@@ -271,6 +337,9 @@ function init() {
     document.addEventListener('mousemove', onDocumentMouseMove);
 }
 
+/*
+onDocumentMouseMove -> update the mouse position and emit it to the other screens
+*/
 function onDocumentMouseMove(event) {
     // only the master can move
     if (screen != 1) return;
@@ -284,15 +353,310 @@ function onDocumentMouseMove(event) {
     });
 }
 
+
+/*
+printFen -> print the chessboard with the given fen string
+@param {String} fen, Forsyth–Edwards Notation
+*/
+function printFen(fen) {
+    // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+
+    let rw = 1, bw = 1, nw = 1, pw = 8, qw = 1, kw = 1;
+    let rb = 1, bb = 1, nb = 1, pb = 0, qb = 1, kb = 1;
+
+    let sxw = -21, syw = -21;
+    let sxb = 21, syb = 21;
+    // let sxw = 21, syw = -21;
+    // let sxb = -21, syb = 21;
+
+    for (let piece of fen) {
+
+        console.log('pieza: ' + piece);
+        console.log('coords: ' + sxw + ' ' + syw);
+        console.log('coords: ' + sxb + ' ' + syb);
+
+        if (piece == '/') {
+            // sxw = 21; syw += 6;
+            // sxb = -21; syb -= 6;
+            sxw += 6; syw = -21;
+            sxb -= 6; syb = 21;
+            continue;
+        }
+
+        if (!Number.isNaN(parseInt(piece))) {
+            syw += 6 * parseInt(piece);
+            syb -= 6 * parseInt(piece);
+            continue;
+        }
+
+        if (piece == piece.toLowerCase()) { // black
+            
+            if (piece == 'p') {
+                black[blackNaming[`${piece}${pb}`]].position.x = sxb;
+                black[blackNaming[`${piece}${pb}`]].position.y = syb;
+                pb++;
+            }
+            if (piece == 'n') {
+                black[blackNaming[`${piece}${nb}`]].position.x = sxb;
+                black[blackNaming[`${piece}${nb}`]].position.y = syb;
+                nb++;
+            }
+            if (piece == 'b') {
+                black[blackNaming[`${piece}${bb}`]].position.x = sxb;
+                black[blackNaming[`${piece}${bb}`]].position.y = syb;
+                bb++;
+            }
+            if (piece == 'r') {
+                black[blackNaming[`${piece}${rb}`]].position.x = sxb;
+                black[blackNaming[`${piece}${rb}`]].position.y = syb;
+                rb++;
+            }
+            if (piece == 'q') {
+                black[blackNaming[piece]].position.x = sxb;
+                black[blackNaming[piece]].position.y = syb;
+                qb++;
+            }
+            if (piece == 'k') {
+                black[blackNaming[piece]].position.x = sxb;
+                black[blackNaming[piece]].position.y = syb;
+                kb++;
+            }
+        } else { // white
+            
+            piece = piece.toLowerCase();
+
+            if (piece == 'p') {
+                white[whiteNaming[`${piece}${pw}`]].position.x = sxw;
+                white[whiteNaming[`${piece}${pw}`]].position.y = syw;
+                pw++;
+            }
+            if (piece == 'n') {
+                white[whiteNaming[`${piece}${nw}`]].position.x = sxw;
+                white[whiteNaming[`${piece}${nw}`]].position.y = syw;
+                nw++;
+            }
+            if (piece == 'b') {
+
+                white[whiteNaming[`${piece}${bw}`]].position.x = sxw;
+                white[whiteNaming[`${piece}${bw}`]].position.y = syw;
+                bw++;
+            }
+            if (piece == 'r') {
+                white[whiteNaming[`${piece}${rw}`]].position.x = sxw;
+                white[whiteNaming[`${piece}${rw}`]].position.y = syw;
+                rw++;
+            }
+            if (piece == 'q') {
+                white[whiteNaming[piece]].position.x = sxw;
+                white[whiteNaming[piece]].position.y = syw;
+                qw++;
+            }
+            if (piece == 'k') {
+                white[whiteNaming[piece]].position.x = sxw;
+                white[whiteNaming[piece]].position.y = syw;
+                kw++;
+            }
+        }
+
+        syw += 6;
+        syb -= 6;
+    }
+
+    // check if there are dead pieces
+
+    // root
+    try {
+        if (rw != 3) {
+            for (let index = rw; rw < 3; index++) {
+                white[whiteNaming[`r${index}`]].position.x += 24;
+                deadWhite[whiteNaming[`r${index}`]] = white[whiteNaming[`r${index}`]];
+            }
+        }
+    } catch (err) { }
+    try {
+        if (rb != 3) {
+            for (let index = rb; rb < 3; index++) {
+                black[blackNaming[`r${index}`]].position.x += 24;
+                deadBlack[blackNaming[`r${index}`]] = black[blackNaming[`r${index}`]];
+            }
+        }
+    } catch (err) { }
+
+    // knight
+    try {
+        if (nw != 3) {
+            for (let index = nw; nw < 3; index++) {
+                white[whiteNaming[`n${index}`]].position.x += 24;
+                deadWhite[whiteNaming[`n${index}`]] = white[whiteNaming[`n${index}`]];
+            }
+        }
+    } catch (err) { }
+
+    try {
+        if (nb != 3) {
+            for (let index = nb; nb < 3; index++) {
+                black[blackNaming[`n${index}`]].position.x += 24;
+                deadBlack[blackNaming[`n${index}`]] = black[blackNaming[`n${index}`]];
+            }
+        }
+    } catch (err) { }
+
+    // bishop
+    try {
+        if (bw != 3) {
+            for (let index = bw; bw < 3; index++) {
+                white[whiteNaming[`b${index}`]].position.x += 24;
+                deadWhite[whiteNaming[`b${index}`]] = white[whiteNaming[`b${index}`]];
+            }
+        }
+    } catch (err) { }
+
+    try {
+        if (bb != 3) {
+            for (let index = bb; bb < 3; index++) {
+                black[blackNaming[`b${index}`]].position.x += 24;
+                deadBlack[blackNaming[`b${index}`]] = black[blackNaming[`b${index}`]];
+            }
+        }
+    } catch (err) { }
+
+    // pawn
+    try {
+        if (pb != 8) {
+            for (let index = pb; pb < 8; index++) {
+                black[blackNaming[`p${index}`]].position.x += 18;
+                deadBlack[blackNaming[`p${index}`]] = black[blackNaming[`p${index}`]];
+            }
+        }
+    } catch (err) { }
+
+    try {
+        if (pw != 16) {
+            for (let index = pw; pw < 16; index++) {
+                white[whiteNaming[`p${index}`]].position.x += 18;
+                deadWhite[whiteNaming[`p${index}`]] = white[whiteNaming[`p${index}`]];
+            }
+        }
+    } catch (err) { }
+
+    // queen    
+    try {
+        if (qw != 2) {
+            white[whiteNaming['q']].position.x += 24;
+            deadWhite[whiteNaming['q']] = white[whiteNaming['q']];
+        }
+    } catch (err) { }
+
+    try {
+        if (qb != 2) {
+            black[blackNaming['q']].position.x += 24;
+            deadBlack[blackNaming['q']] = black[blackNaming['q']];
+        }
+    } catch (err) { }
+
+    // king
+    try {
+        if (kw != 2) {
+            white[whiteNaming['k']].position.x += 24;
+            deadWhite[whiteNaming['k']] = white[whiteNaming['k']];
+        }
+    } catch (err) { }
+
+    try {
+        if (kb != 2) {
+            black[blackNaming['k']].position.x += 24;
+            deadBlack[blackNaming['k']] = black[blackNaming['k']];
+        }
+    } catch (err) { }
+}
+
+/*
+animate -> animate the scene
+*/
 function animate() {
 
     for (let i = 0; i < views.length; ++i) {
         views[i].render();
     }
 
+    animateStars();
+
     requestAnimationFrame(animate);
 }
 
+
+/*
+addSpehere -> add spheres (starts) to the scene
+*/
+function addSphere() {
+
+    // The loop will move from z position of -1000 to z position 1000, adding a random particle at each position. 
+    for (var z = -1000; z < 1000; z += 20) {
+
+        // Make a sphere (exactly the same as before). 
+        var geometry = new THREE.SphereGeometry(0.5, 32, 32)
+        var material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        var sphere = new THREE.Mesh(geometry, material)
+
+        // This time we give the sphere random x and y positions between -500 and 500
+        sphere.position.x = Math.random() * 1000 - 500;
+        sphere.position.y = Math.random() * 1000 - 500;
+
+        // Then set the z position to where it is in the loop (distance of camera)
+        sphere.position.z = z;
+
+        // scale it up a bit
+        sphere.scale.x = sphere.scale.y = 2;
+
+        //add the sphere to the scene
+        scene.add(sphere);
+
+        //finally push it to the stars array 
+        stars.push(sphere);
+    }
+}
+
+/*
+animateStars -> animate the stars, moving starts
+*/
+function animateStars() {
+
+    let star;
+    // loop through each star
+    for (var i = 0; i < stars.length; i++) {
+
+        star = stars[i];
+
+        // and move it forward dependent on the mouseY position. 
+        star.position.z += i / 30;
+
+        // if the particle is too close move it to the back
+        if (star.position.z > 1000) star.position.z -= 2000;
+
+    }
+
+}
+
+/*
+let whiteNaming = {
+  'k': 0, // king
+  'q': 1, // queen
+  'b1': 2, // alfil
+  'n1': 3, // caballo
+  'r1': 4, // torre
+  'p15': 5,
+  'p14': 6,
+  'p13': 7,
+  'p12': 8,
+  'p11': 9,
+  'p10': 10,
+  'p9': 11,
+  'p8': 12,
+  'r2': 13, // torre
+  'n2': 14, // caballo
+  'b2': 15 // alfil
+}
+*/
 
 // EXAMPLE ICOSAEDRON
 
