@@ -55,7 +55,7 @@ let blackNaming = {
 
 let deadWhite = new Array(16);
 let deadBlack = new Array(16);
-let status = Array(8).fill(0).map(x => Array(8).fill(null)); // 2d array
+let chessboardStatus = Array(8).fill(0).map(x => Array(8).fill(null)); // 2d array
 
 /* END VARIABLE DEFINITION */
 
@@ -135,6 +135,11 @@ socket.on('start', (superRes) => {
     animate();
 });
 
+/*
+*/
+socket.on('updateFen', (fen) => {
+    printFen(fen.status);
+});
 
 /*
 UpdateMouse -> update mouse position, only works for slaves
@@ -170,7 +175,7 @@ const onDocumentKeyDown = (event) => {
         camera.position.z += 100;
     } else if (keyCode == 83) { // s
         camera.position.z -= 100;
-    } else return
+    } else { return; }
 
     socket.emit('updatePos', {
         z: camera.position.z
@@ -306,16 +311,14 @@ function init() {
                 // Black squares color
                 chessboard.children[0].children[0].children[0].children[4].children[1].children[1].material.color.setHex(0xCF9218);
 
-
                 // add chessboard to the main scene
                 scene.add(chessboard);
                 camera.lookAt(chessboard.position);
 
-                printFen('4k2r/6r1/8/8/8/8/3R4/R3K3');
+                // printFen('4k2r/6r1/8/8/8/8/3R4/R3K3');
                 // printFen('8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8');
                 // printFen('rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R');
-                // printFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-
+                printFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
             },
             // called while loading is progressing
             function (xhr) {
@@ -353,6 +356,47 @@ function onDocumentMouseMove(event) {
     });
 }
 
+// function movePiece(srcSquare, toSquare) {
+//     if (chessboard[toSquare.split('')[0]][toSquare.split('')[1]] != null) {
+//         // remove the piece
+//         // - find out the color
+//         // - move it to its dead position
+//     }
+
+//     // move the piece src to the targuet square
+//     chessboard[toSquare.split('')[0]][toSquare.split('')[1]] = chessboard[srcSquare.split('')[0]][srcSquare.split('')[1]];
+//     chessboard[srcSquare.split('')[0]][srcSquare.split('')[1]] = null;
+
+//     // update the board
+//     // calc offset
+//     let offsetX = (toSquare.split('')[0].toLowerCase()).charCodeAt(0)-97;
+//     let offsetY = parseInt(toSquare.split('')[1])-1;
+//     // if it it white
+//     if(true) {
+//         chessboard[toSquare.split('')[0]][toSquare.split('')[1]].position.x = 21 - offsetX;
+//         chessboard[toSquare.split('')[0]][toSquare.split('')[1]].position.x = -21 + offsetY;
+//     }else {// if it is black
+//         chessboard[toSquare.split('')[0]][toSquare.split('')[1]].position.x = -21 + offsetX;
+//         chessboard[toSquare.split('')[0]][toSquare.split('')[1]].position.x = 21 - offsetY;
+//     }
+// }
+
+
+/*
+setPiecePos -> set the position of a piece in the visualization and in the status board
+*/
+function setPiecePos(piece, type, sx, sy, i, j, color) {
+
+    if (color == 'white') {
+        white[whiteNaming[`${piece}${type}`]].position.x = sx;
+        white[whiteNaming[`${piece}${type}`]].position.y = sy;
+        chessboardStatus[i][j] = white[whiteNaming[`${piece}${type}`]];
+    } else {
+        black[blackNaming[`${piece}${type}`]].position.x = sx;
+        black[blackNaming[`${piece}${type}`]].position.y = sy;
+        chessboardStatus[i][j] = black[blackNaming[`${piece}${type}`]];
+    }
+}
 
 /*
 printFen -> print the chessboard with the given fen string
@@ -366,95 +410,87 @@ function printFen(fen) {
 
     let sxw = -21, syw = -21;
     let sxb = 21, syb = 21;
-    // let sxw = 21, syw = -21;
-    // let sxb = -21, syb = 21;
+    let i = 0, j = 8;
+
+    // reset chessboard status
+    chessboardStatus = Array(8).fill(0).map(x => Array(8).fill(null));
 
     for (let piece of fen) {
 
-        console.log('pieza: ' + piece);
-        console.log('coords: ' + sxw + ' ' + syw);
-        console.log('coords: ' + sxb + ' ' + syb);
-
         if (piece == '/') {
-            // sxw = 21; syw += 6;
-            // sxb = -21; syb -= 6;
             sxw += 6; syw = -21;
             sxb -= 6; syb = 21;
+            i = 0; j--;
             continue;
         }
 
         if (!Number.isNaN(parseInt(piece))) {
             syw += 6 * parseInt(piece);
             syb -= 6 * parseInt(piece);
+            i++;
             continue;
         }
 
         if (piece == piece.toLowerCase()) { // black
-            
+
             if (piece == 'p') {
-                black[blackNaming[`${piece}${pb}`]].position.x = sxb;
-                black[blackNaming[`${piece}${pb}`]].position.y = syb;
+                setPiecePos(piece, pb, sxb, syb, i, j, 'black');
                 pb++;
             }
             if (piece == 'n') {
-                black[blackNaming[`${piece}${nb}`]].position.x = sxb;
-                black[blackNaming[`${piece}${nb}`]].position.y = syb;
+                setPiecePos(piece, nb, sxb, syb, i, j, 'black');
                 nb++;
             }
             if (piece == 'b') {
-                black[blackNaming[`${piece}${bb}`]].position.x = sxb;
-                black[blackNaming[`${piece}${bb}`]].position.y = syb;
+                setPiecePos(piece, bb, sxb, syb, i, j, 'black');
                 bb++;
             }
             if (piece == 'r') {
-                black[blackNaming[`${piece}${rb}`]].position.x = sxb;
-                black[blackNaming[`${piece}${rb}`]].position.y = syb;
+                setPiecePos(piece, rb, sxb, syb, i, j, 'black');
                 rb++;
             }
             if (piece == 'q') {
                 black[blackNaming[piece]].position.x = sxb;
                 black[blackNaming[piece]].position.y = syb;
                 qb++;
+                chessboardStatus[i][j] = black[blackNaming[piece]];
             }
             if (piece == 'k') {
                 black[blackNaming[piece]].position.x = sxb;
                 black[blackNaming[piece]].position.y = syb;
                 kb++;
+                chessboardStatus[i][j] = black[blackNaming[piece]];
             }
-        } else { // white
-            
+        } else { // white            
             piece = piece.toLowerCase();
 
             if (piece == 'p') {
-                white[whiteNaming[`${piece}${pw}`]].position.x = sxw;
-                white[whiteNaming[`${piece}${pw}`]].position.y = syw;
+                setPiecePos(piece, pw, sxw, syw, i, j, 'white');
                 pw++;
             }
             if (piece == 'n') {
-                white[whiteNaming[`${piece}${nw}`]].position.x = sxw;
-                white[whiteNaming[`${piece}${nw}`]].position.y = syw;
+                setPiecePos(piece, nw, sxw, syw, i, j, 'white');
                 nw++;
             }
             if (piece == 'b') {
-
-                white[whiteNaming[`${piece}${bw}`]].position.x = sxw;
-                white[whiteNaming[`${piece}${bw}`]].position.y = syw;
+                setPiecePos(piece, bw, sxw, syw, i, j, 'white');
                 bw++;
             }
             if (piece == 'r') {
-                white[whiteNaming[`${piece}${rw}`]].position.x = sxw;
-                white[whiteNaming[`${piece}${rw}`]].position.y = syw;
+                setPiecePos(piece, rw, sxw, syw, i, j, 'white');
                 rw++;
             }
             if (piece == 'q') {
                 white[whiteNaming[piece]].position.x = sxw;
                 white[whiteNaming[piece]].position.y = syw;
                 qw++;
+                chessboardStatus[i][j] = white[whiteNaming[piece]];
             }
             if (piece == 'k') {
                 white[whiteNaming[piece]].position.x = sxw;
                 white[whiteNaming[piece]].position.y = syw;
                 kw++;
+                chessboardStatus[i][j] = white[whiteNaming[piece]];
             }
         }
 
@@ -578,9 +614,7 @@ function animate() {
     for (let i = 0; i < views.length; ++i) {
         views[i].render();
     }
-
     animateStars();
-
     requestAnimationFrame(animate);
 }
 
@@ -598,20 +632,11 @@ function addSphere() {
         var material = new THREE.MeshBasicMaterial({ color: 0xffffff });
         var sphere = new THREE.Mesh(geometry, material)
 
-        // This time we give the sphere random x and y positions between -500 and 500
         sphere.position.x = Math.random() * 1000 - 500;
         sphere.position.y = Math.random() * 1000 - 500;
-
-        // Then set the z position to where it is in the loop (distance of camera)
         sphere.position.z = z;
-
-        // scale it up a bit
         sphere.scale.x = sphere.scale.y = 2;
-
-        //add the sphere to the scene
         scene.add(sphere);
-
-        //finally push it to the stars array 
         stars.push(sphere);
     }
 }
@@ -620,43 +645,16 @@ function addSphere() {
 animateStars -> animate the stars, moving starts
 */
 function animateStars() {
-
     let star;
     // loop through each star
     for (var i = 0; i < stars.length; i++) {
-
         star = stars[i];
-
-        // and move it forward dependent on the mouseY position. 
+        // speed is proportional to the z position of the star
         star.position.z += i / 30;
-
-        // if the particle is too close move it to the back
-        if (star.position.z > 1000) star.position.z -= 2000;
-
+        // respawn the star when its position is close to the camera
+        if (star.position.z > 1500) star.position.z -= 2500;
     }
-
 }
-
-/*
-let whiteNaming = {
-  'k': 0, // king
-  'q': 1, // queen
-  'b1': 2, // alfil
-  'n1': 3, // caballo
-  'r1': 4, // torre
-  'p15': 5,
-  'p14': 6,
-  'p13': 7,
-  'p12': 8,
-  'p11': 9,
-  'p10': 10,
-  'p9': 11,
-  'p8': 12,
-  'r2': 13, // torre
-  'n2': 14, // caballo
-  'b2': 15 // alfil
-}
-*/
 
 // EXAMPLE ICOSAEDRON
 
