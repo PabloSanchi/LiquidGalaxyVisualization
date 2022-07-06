@@ -138,10 +138,14 @@ io.on('connect', socket => {
         console.log('FEN: ' + data.status);
         console.log('Move: ' + data.move);
 
-        io.to('screen').emit('move', {
-            status: data.status,
-            move: data.move
+        io.to('screen').emit('updateFen', {
+            status: data.status
         });
+
+        // io.to('screen').emit('move', {
+        //     status: data.status,
+        //     move: data.move
+        // });
     });
 
     /*
@@ -153,10 +157,13 @@ io.on('connect', socket => {
     socket.on('currentBoard', (data) => {
         console.log('Current Board: ' + data.status);
 
-        // emit curent borad status to the screens
-        io.to('screen').emit('currentStatus', {
+        io.to('screen').emit('updateFen', {
             status: data.status
         });
+        // emit curent borad status to the screens
+        // io.to('screen').emit('currentStatus', {
+        //     status: data.status
+        // });
     });
 });
 
