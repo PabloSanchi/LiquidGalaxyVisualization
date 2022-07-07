@@ -10,19 +10,17 @@ filename="$date.txt"
 # Add to log with timestamp
 time=$(date +%H:%M:%S)
 echo "[$time] Installing Space Chess..." | tee -a ./logs/$filename
-read -p "Please type the number of screens in the Liquid Galaxy: " nScreens
 
-# Open port 8117
-
+# Open port 8118
 LINE=`cat /etc/iptables.conf | grep "tcp" | grep "8111" | awk -F " -j" '{print $1}'`
 
-RESULT=$LINE",8117"
+RESULT=$LINE",8118"
 
-DATA=`cat /etc/iptables.conf | grep "tcp" | grep "8111" | grep "8117"`
+DATA=`cat /etc/iptables.conf | grep "tcp" | grep "8111" | grep "8118"`
 
 if [ "$DATA" == "" ]; then
     time=$(date +%H:%M:%S)
-    echo "[$time] Port 8117 not open, opening port..." | tee -a ./logs/$filename
+    echo "[$time] Port 8118 not open, opening port..." | tee -a ./logs/$filename
     sudo sed -i "s/$LINE/$RESULT/g" /etc/iptables.conf 2>> ./logs/$filename
 else
     time=$(date +%H:%M:%S)
@@ -38,20 +36,17 @@ npm install 2>> ./logs/$filename
 sudo chown lg:lg /home/lg/.pm2/rpc.sock /home/lg/.pm2/pub.sock
 
 # Stop server if already started
-pm2 delete CHESS_PORT:8117 2> /dev/null
+pm2 delete CHESS_PORT:8118 2> /dev/null
 
 # Start server
 time=$(date +%H:%M:%S)
 echo "[$time] Starting pm2..." | tee -a ./logs/$filename
-pm2 start index.js --name CHESS_PORT:8117 -- $nScreens 2>> ./logs/$filename
+pm2 start index.js --name CHESS_PORT:8118 2>> ./logs/$filename
 
 pm2 save 2>> ./logs/$filename
 
-# Add automatic pm2 resurrect script
-time=$(date +%H:%M:%S)
-echo "[$time] Updating resurrect script..." | tee -a ./logs/$filename
-RESURRECT=$(pm2 startup | grep 'sudo')
-eval $RESURRECT 2>> ./logs/$filename
+# Stop server
+pm2 delete CHESS_PORT:8118 2> /dev/null
 
 time=$(date +%H:%M:%S)
 echo "[$time] Installation complete. Reboot machine to finish installation" | tee -a ./logs/$filename
