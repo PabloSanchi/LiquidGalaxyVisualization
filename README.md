@@ -82,7 +82,7 @@ Type on your browser the following url<br/>
   
 Example:
 ```bash
-http://192.168.0.11:8114/controller
+http://192.168.0.11:8117/controller
 ```
 
 
