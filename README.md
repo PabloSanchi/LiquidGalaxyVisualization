@@ -72,13 +72,23 @@ If you are experiencing some errors while executing the `open-chess.sh` script, 
 - Restart the server `npm start + additional config`
 - `bash open-chess.sh`
 
-## Keyboard Controls (only test)
+## Keyboard Controls (test only)
 - ZOOM: **w** & **s** keyboard keys
 - AXIS Movement: **a** & **d** keyboard keys
 
-## Web Controller IP:Port/Controller:
+## Web Controller (test only)
+Type on your browser the following url<br/>
+- MASTERIP:Port/Controller
+  
+Example:
+```bash
+http://192.168.0.11:8114/controller
+```
 
-NOT FOR NOW!
+
+<p align="center">
+<img src="./assets/controller.png" width="35%">
+</p>
 
 ## 📺 Final view (3 Screen example)
 <p align="center">

@@ -189,6 +189,10 @@ const onDocumentKeyDown = (event) => {
     });
 }
 
+socket.on('controllerUpdate', (data) => {
+    camera.position.x += data.x;
+    camera.position.z += data.z;
+});
 
 /* SOCKET INFORMATION EXCHANGE */
 

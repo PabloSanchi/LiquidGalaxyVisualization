@@ -88,8 +88,13 @@ io.on('connect', socket => {
 
     // join the room taking care of the type (mobile or screen)
     if (socket.handshake.query.mobile == 'true') {
+        console.log('MOBILE');
         socket.join('mobile');
+    } else if(socket.handshake.query.controller == 'true') {
+        console.log('CONTROLLER');
+        socket.join('controller');
     } else {
+        console.log('SCREEN');
         socket.join('screen');
     }
 
@@ -98,7 +103,7 @@ io.on('connect', socket => {
         console.log('user left');
     });
 
-    if(!(socket.handshake.query.mobile == 'true')) {
+    if(!(socket.handshake.query.mobile == 'true') && !(socket.handshake.query.controller == 'true')) {
         io.to(socket.id).emit('update', {
             id: screenNumber
         });
@@ -176,6 +181,11 @@ io.on('connect', socket => {
         //     status: data.status
         // });
     });
+
+    socket.on('controllerMove', (data) => {
+        io.to('screen').emit('controllerUpdate', data);
+    });
+
 });
 
 http.listen(port, () => {
