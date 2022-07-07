@@ -61,7 +61,7 @@ npm start NUMSCREEN
 bash open-chess.sh
 ```
 
-NUMSCREEN is the number of screen that you want to use, by deafult is 5, so make sure to set it properly according to your rig setup.
+***NUMSCREEN is the number of screens that you want to use, by deafult is 5, so make sure to set it properly according to your rig setup.***
 
 
 <!-- If you experience any problems, check the installation logs for any possible errors in the logs folder, there will be a file with the date of installation as it's name. -->
@@ -69,7 +69,7 @@ NUMSCREEN is the number of screen that you want to use, by deafult is 5, so make
 If you are experiencing some errors while executing the `open-chess.sh` script, kill it and re-start it.
 - Stop the server
 - `bash kill-chess.sh`
-- Restart the server `npm start`
+- Restart the server `npm start + additional config`
 - `bash open-chess.sh`
 
 ## Keyboard Controls (only test)
@@ -78,7 +78,7 @@ If you are experiencing some errors while executing the `open-chess.sh` script, 
 
 ## Web Controller IP:Port/Controller:
 
-...
+NOT FOR NOW!
 
 ## 📺 Final view (3 Screen example)
 <p align="center">
