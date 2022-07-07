@@ -47,6 +47,7 @@ pm2 save 2>> ./logs/$filename
 
 # Stop server
 pm2 delete CHESS_PORT:8118 2> /dev/null
+pm2 save 2>> ./logs/$filename
 
 time=$(date +%H:%M:%S)
 echo "[$time] Installation complete. Reboot machine to finish installation" | tee -a ./logs/$filename
