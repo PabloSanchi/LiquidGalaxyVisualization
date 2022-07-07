@@ -56,8 +56,10 @@ app.get('/:id', (req, res) => {
     if (id == "controller") {
         res.sendFile(__dirname + `${filePath}/${controllerFile}`);
     } else {
-        screenNumber = id
-        res.sendFile(__dirname + `${filePath}/${pruebas}`);
+        if(id <= nScreens) {
+            screenNumber = id
+            res.sendFile(__dirname + `${filePath}/${pruebas}`);
+        }
     }
     // }
 });
