@@ -22,14 +22,12 @@ The satellite (🛰️) may take a while to make its move, so you may not see it
 ```bash
 node -v
 ```
-
 -  The output should look someting like `v16.*.*`, if this is not the case it should still work, if not, try upgrading to the version 16.
 
 3. Install pm2 on master machine. Run command:
 ```bash
 sudo npm i -g pm2
 ```
-
 4. Make sure Chromium Browser is installed on all machines.
 
 
@@ -81,7 +79,7 @@ Type on your browser the following url<br/>
   
 Example:
 ```bash
-http://192.168.0.11:8117/controller
+http://192.168.0.11:8120/controller
 ```
 
 

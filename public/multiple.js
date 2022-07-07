@@ -181,7 +181,7 @@ const onDocumentKeyDown = (event) => {
         camera.position.x += 50;
     } else if (keyCode == 68) {
         camera.position.x -= 50;
-    }
+    } else { return; }
 
     socket.emit('updatePos', {
         x: camera.position.x,
@@ -238,8 +238,8 @@ function View(canvas, fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight
 
     // camera default position
     camera.position.z = 1000; // default camera z index pos
-    camera.position.x += (mouseX - camera.position.x) * 0.05;
-    camera.position.y += (- mouseY - camera.position.y) * 0.05;
+    // camera.position.x += (mouseX - camera.position.x) * 0.05;
+    // camera.position.y += (- mouseY - camera.position.y) * 0.05;
 
     this.render = function () {
 
@@ -292,7 +292,9 @@ function init() {
                 chessboard = gltf.scene;
                 chessboard.rotation.x = Math.PI / 3;
 
-                chessboard.position.x -= 200;
+                // chessboard.position.x -= (canvas1.clientWidth / 2);
+                camera.position.x = chessboard.position.x;
+                camera.position.y = chessboard.position.y;
 
                 light.position.set(10, 100, 200).normalize();
 
@@ -636,7 +638,7 @@ addSpehere -> add spheres (starts) to the scene
 function addSphere() {
 
     // The loop will move from z position of -1000 to z position 1000, adding a random particle at each position. 
-    for (var z = -1000; z < 1000; z += 20) {
+    for (var z = -2000; z < 2000; z += 40) {
 
         // Make a sphere (exactly the same as before). 
         var geometry = new THREE.SphereGeometry(0.5, 32, 32)

@@ -15,7 +15,7 @@ var io = new Server(http, {
 
 const __dirname = path.resolve();
 
-const port = 8119;
+const port = 8120;
 
 // Setup files to be sent on connection
 const filePath = "/public" // Do not add '/' at the end
