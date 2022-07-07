@@ -178,9 +178,9 @@ const onDocumentKeyDown = (event) => {
     } else if (keyCode == 83) { // s
         camera.position.z -= 100;
     } else if (keyCode == 65) { 
-        camera.position.x -= 100;
+        camera.position.x -= 50;
     } else if (keyCode == 68) {
-        camera.position.x += 100;
+        camera.position.x += 50;
     }
 
     socket.emit('updatePos', {
