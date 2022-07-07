@@ -1,6 +1,8 @@
 #!/bin/bash
 . ${HOME}/etc/shell.conf
 
+pm2 start index.js --name CHESS_PORT:8117 -- $1 2>> ./logs/$filename
+
 port=8117;
 screenNumber=0;
 for lg in $LG_FRAMES ; do
