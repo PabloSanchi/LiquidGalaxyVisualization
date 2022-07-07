@@ -1,0 +1,11 @@
+Model Information:
+* title:	High Poly Chess Set
+* source:	https://sketchfab.com/3d-models/high-poly-chess-set-f8ee8af6af8349a8a852a03f98c0e386
+* author:	nrebei2 (https://sketchfab.com/nrebei2)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "High Poly Chess Set" (https://sketchfab.com/3d-models/high-poly-chess-set-f8ee8af6af8349a8a852a03f98c0e386) by nrebei2 (https://sketchfab.com/nrebei2) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
