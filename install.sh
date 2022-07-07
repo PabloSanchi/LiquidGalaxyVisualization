@@ -11,16 +11,16 @@ filename="$date.txt"
 time=$(date +%H:%M:%S)
 echo "[$time] Installing Space Chess..." | tee -a ./logs/$filename
 
-# Open port 8118
+# Open port 8119
 LINE=`cat /etc/iptables.conf | grep "tcp" | grep "8111" | awk -F " -j" '{print $1}'`
 
-RESULT=$LINE",8118"
+RESULT=$LINE",8119"
 
-DATA=`cat /etc/iptables.conf | grep "tcp" | grep "8111" | grep "8118"`
+DATA=`cat /etc/iptables.conf | grep "tcp" | grep "8111" | grep "8119"`
 
 if [ "$DATA" == "" ]; then
     time=$(date +%H:%M:%S)
-    echo "[$time] Port 8118 not open, opening port..." | tee -a ./logs/$filename
+    echo "[$time] Port 8119 not open, opening port..." | tee -a ./logs/$filename
     sudo sed -i "s/$LINE/$RESULT/g" /etc/iptables.conf 2>> ./logs/$filename
 else
     time=$(date +%H:%M:%S)
@@ -36,17 +36,17 @@ npm install 2>> ./logs/$filename
 sudo chown lg:lg /home/lg/.pm2/rpc.sock /home/lg/.pm2/pub.sock
 
 # Stop server if already started
-pm2 delete CHESS_PORT:8118 2> /dev/null
+pm2 delete CHESS_PORT:8119 2> /dev/null
 
 # Start server
 time=$(date +%H:%M:%S)
 echo "[$time] Starting pm2..." | tee -a ./logs/$filename
-pm2 start index.js --name CHESS_PORT:8118 2>> ./logs/$filename
+pm2 start index.js --name CHESS_PORT:8119 2>> ./logs/$filename
 
 pm2 save 2>> ./logs/$filename
 
 # Stop server
-pm2 delete CHESS_PORT:8118 2> /dev/null
+pm2 delete CHESS_PORT:8119 2> /dev/null
 pm2 save 2>> ./logs/$filename
 
 time=$(date +%H:%M:%S)

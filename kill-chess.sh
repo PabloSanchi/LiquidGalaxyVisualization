@@ -1,7 +1,7 @@
 #!/bin/bash
 . ${HOME}/etc/shell.conf
 
-pm2 delete CHESS_PORT:8118 2> /dev/null
+pm2 delete CHESS_PORT:8119 2> /dev/null
 
 for lg in $LG_FRAMES ; do
 	if [ $lg == "lg1" ]; then

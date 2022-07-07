@@ -1,7 +1,7 @@
 #!/bin/bash
 . ${HOME}/etc/shell.conf
 
-port=8118;
+port=8119;
 screenNumber=0;
 for lg in $LG_FRAMES ; do
     screenNumber=${lg:2}
