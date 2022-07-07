@@ -1,5 +1,16 @@
 #!/bin/bash
-# It is not finished yet, but it is enough to install the required packages.
+
+#Create logs directory if it doesnt exist yet
+mkdir -p ./logs
+
+#Create file name with name as date
+date=$(date +%m-%d-%y)
+filename="$date.txt"
+
+# Add to log with timestamp
+time=$(date +%H:%M:%S)
+echo "[$time] Installing Space Chess..." | tee -a ./logs/$filename
+read -p "Please type the number of screens in the Liquid Galaxy: " nScreens
 
 # Open port 8117
 
@@ -19,11 +30,32 @@ else
 fi
 
 # Install dependencies
-npm install
+time=$(date +%H:%M:%S)
+echo "[$time] Installing dependencies..." | tee -a ./logs/$filename
+npm install 2>> ./logs/$filename
 
-# Finish installation
+# Add access for pm2
+sudo chown lg:lg /home/lg/.pm2/rpc.sock /home/lg/.pm2/pub.sock
+
+# Stop server if already started
+pm2 delete CHESS_PORT:8117 2> /dev/null
+
+# Start server
+time=$(date +%H:%M:%S)
+echo "[$time] Starting pm2..." | tee -a ./logs/$filename
+pm2 start index.js --name CHESS_PORT:8117 -- $nScreens 2>> ./logs/$filename
+
+pm2 save 2>> ./logs/$filename
+
+# Add automatic pm2 resurrect script
+time=$(date +%H:%M:%S)
+echo "[$time] Updating resurrect script..." | tee -a ./logs/$filename
+RESURRECT=$(pm2 startup | grep 'sudo')
+eval $RESURRECT 2>> ./logs/$filename
+
 time=$(date +%H:%M:%S)
 echo "[$time] Installation complete. Reboot machine to finish installation" | tee -a ./logs/$filename
+
 read -p "Do you want to reboot your machine now? [Y/n]: " yes
 
 if [[ $yes =~ ^[Yy]$ ]]

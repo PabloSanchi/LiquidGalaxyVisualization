@@ -25,13 +25,12 @@ node -v
 
 -  The output should look someting like `v16.*.*`, if this is not the case it should still work, if not, try upgrading to the version 16.
 
-<!-- 2. After Node.js is installed, Install pm2 on master machine. Run command:
+3. Install pm2 on master machine. Run command:
 ```bash
 sudo npm i -g pm2
-``` -->
+```
 
-3. Make sure Chromium Browser is installed on all machines.
-
+4. Make sure Chromium Browser is installed on all machines.
 
 
 ## 🖥️ Installation & Launch
