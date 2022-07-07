@@ -59,6 +59,14 @@ app.get('/:id', (req, res) => {
         if(id <= nScreens) {
             screenNumber = id
             res.sendFile(__dirname + `${filePath}/${pruebas}`);
+        }else {
+            res.send(`
+            <body style="background-color: black;">
+                <h1 style="font-family: Sans-serif; color: white;">
+                    make sure that npm start SCREENUM is properly set
+                </h1>
+            </body>
+            `);  
         }
     }
     // }
