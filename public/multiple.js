@@ -239,8 +239,8 @@ function View(canvas, fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight
 
     this.render = function () {
 
-        camera.position.x += (mouseX - camera.position.x) * 0.05;
-        camera.position.y += (- mouseY - camera.position.y) * 0.05;
+        // camera.position.x += (mouseX - camera.position.x) * 0.05;
+        // camera.position.y += (- mouseY - camera.position.y) * 0.05;
         // camera.lookAt( scene.position );
 
         renderer.setViewport(0, fullHeight - viewHeight, viewWidth, viewHeight);
@@ -320,7 +320,7 @@ function init() {
 
                 // add chessboard to the main scene
                 scene.add(chessboard);
-                camera.lookAt(chessboard.position);
+                // camera.lookAt(chessboard.position);
 
                 // printFen('4k2r/6r1/8/8/8/8/3R4/R3K3');
                 // printFen('8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8');
