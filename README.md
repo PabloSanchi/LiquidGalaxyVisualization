@@ -3,12 +3,12 @@
 A Newspace related visualization project in collaboration with Hydra-Space.    
 The basic idea is to use the Liquid Galaxy cluster as a visualizer of a world chess game that will happen with people around the world and through satellite communications, a world&apos;s first !!!
 
-Two teams, the Earth (you) and the Space (a strong AI) <br/>
+Two teams, the Earth (🌎)(you) and the Space (🛰️) (a strong AI) <br/>
 Every day the Earth makes one move (at least), the most common move between you all, so play as a community and
 not as an individual.
 
 Once the Earth has made the move, wait for the Space.
-The satellite (🛰️) may take a while to make its move, so you may not see it in hours, so be patient.
+The satellite may take a while to make its move, so you may not see it in hours, so be patient.
 
 <p align="center">
 <img src="./assets/Spl.png" width="70%">
@@ -60,6 +60,12 @@ bash open-chess.sh
 
 ***NUMSCREEN is the number of screens that you want to use, by deafult is 5, so make sure to set it properly according to your rig setup.***
 
+
+<p style="font-size: 15px;"> 
+⚠️ Warning <br/>
+ - IT MAY LAST A BIT TO LOAD THE CHESSBOARD <br/>
+ - THE CHESSBOARD MAY APPEAR ON THE RIGHT SIDE (WILL BE SOLVED), YOU WILL BE ABLE TO MOVE IT ANYWAY
+</p>
 
 <!-- If you experience any problems, check the installation logs for any possible errors in the logs folder, there will be a file with the date of installation as it's name. -->
 
