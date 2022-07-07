@@ -98,10 +98,11 @@ io.on('connect', socket => {
         console.log('user left');
     });
 
-
-    io.to('screen').emit('update', {
-        id: screenNumber
-    })
+    if(!(socket.handshake.query.mobile == 'true')) {
+        io.to(socket.id).emit('update', {
+            id: screenNumber
+        });
+    }
 
     socket.on('windowSize', (data) => {
         superRes[data.id] = data.width;
