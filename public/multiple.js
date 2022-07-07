@@ -281,7 +281,7 @@ function init() {
                 chessboard = gltf.scene;
                 chessboard.rotation.x = Math.PI / 3;
 
-                chessboard.position.x -= 100;
+                chessboard.position.x -= 200;
 
                 light.position.set(10, 100, 200).normalize();
 

@@ -105,6 +105,7 @@ io.on('connect', socket => {
             // }
 
             Object.entries(superRes).forEach(res => {
+                console.log(res[1]);
                 r += res[1];
             });
 
