@@ -32,7 +32,7 @@ var myArgs = process.argv.slice(2); // get nScreens input
 var nScreens = Number(myArgs[0]);
 if (myArgs.length == 0 || isNaN(nScreens)) {
     console.log("Number of screens invalid or not informed, default number is 3.");
-    nScreens = 3;
+    nScreens = 5;
 }
 console.log(`Running LQ Space Chess for Liquid Galaxy with ${nScreens} screens!`);
 
