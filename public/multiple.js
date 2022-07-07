@@ -159,6 +159,8 @@ UpdateMouse -> update camera position z, only works for slaves
 */
 socket.on('updatePosScreen', (pos) => {
     if (screen == 1) return;
+    
+    camera.position.x = pos.x;
     camera.position.z = pos.z;
 });
 
@@ -175,9 +177,14 @@ const onDocumentKeyDown = (event) => {
         camera.position.z += 100;
     } else if (keyCode == 83) { // s
         camera.position.z -= 100;
-    } else { return; }
+    } else if (keyCode == 65) { 
+        camera.position.x -= 100;
+    } else if (keyCode == 68) {
+        camera.position.x += 100;
+    }
 
     socket.emit('updatePos', {
+        x: camera.position.x,
         z: camera.position.z
     });
 }
@@ -337,7 +344,7 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(fullWidth, fullHeight);
 
-    document.addEventListener('mousemove', onDocumentMouseMove);
+    // document.addEventListener('mousemove', onDocumentMouseMove);
 }
 
 /*

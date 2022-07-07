@@ -128,7 +128,6 @@ io.on('connect', socket => {
         io.to('screen').emit('updatePosScreen', pos);
     })
 
-
     /*
         newStatus - recieve the status and move from the client
                     and send the move to the screens
