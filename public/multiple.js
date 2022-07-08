@@ -1,5 +1,3 @@
-// import * as THREE from 'three';
-
 /* VARIABLE DEFINITION */
 var socket = io();
 let nScreens;
@@ -21,14 +19,7 @@ let whiteNaming = {
     'b1': 2, // bishop
     'n1': 3, // knight
     'r1': 4, // rook
-    'p15': 5,
-    'p14': 6,
-    'p13': 7,
-    'p12': 8,
-    'p11': 9,
-    'p10': 10,
-    'p9': 11,
-    'p8': 12,
+    'p15': 5, 'p14': 6, 'p13': 7, 'p12': 8, 'p11': 9, 'p10': 10, 'p9': 11, 'p8': 12,
     'r2': 13, // rook
     'n2': 14, // knight
     'b2': 15 // bishop
@@ -38,14 +29,7 @@ let blackNaming = {
     'b1': 0, // bishop
     'n1': 1, // knight
     'r1': 2, // rook
-    'p7': 3,
-    'p6': 4,
-    'p5': 5,
-    'p4': 6,
-    'p3': 7,
-    'p2': 8,
-    'p1': 9,
-    'p0': 10,
+    'p7': 3, 'p6': 4, 'p5': 5, 'p4': 6, 'p3': 7, 'p2': 8, 'p1': 9, 'p0': 10,
     'r2': 11, // rook
     'n2': 12, // knight
     'b2': 13, // bishop
@@ -178,9 +162,9 @@ const onDocumentKeyDown = (event) => {
     } else if (keyCode == 83) { // s
         camera.position.z -= 100;
     } else if (keyCode == 65) { 
-        camera.position.x += 50;
-    } else if (keyCode == 68) {
         camera.position.x -= 50;
+    } else if (keyCode == 68) {
+        camera.position.x += 50;
     } else { return; }
 
     socket.emit('updatePos', {
@@ -262,7 +246,6 @@ function init() {
 
     const canvas1 = document.getElementById('canvas1');
 
-
     console.log('Parameters:');
     console.log('fullWidth: ' + fullWidth);
     console.log('fullHeight: ' + fullHeight);
@@ -329,9 +312,10 @@ function init() {
                 // camera.lookAt(chessboard.position);
 
                 // printFen('4k2r/6r1/8/8/8/8/3R4/R3K3');
-                // printFen('8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8');
+                printFen('8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8');
                 // printFen('rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R');
-                printFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+                // printFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+                // printFen("rnbqkbnr/8/8/8/8/8/8/RNBQKBNR");
             },
             // called while loading is progressing
             function (xhr) {
@@ -445,192 +429,76 @@ function printFen(fen) {
         }
 
         if (piece == piece.toLowerCase()) { // black
+                        
+            if(piece == 'q' || piece == 'k') { 
+                setPiecePos(piece, '', sxb, syb, i, j, 'black');
+                eval(`${piece}b++`);
+            }else {
+                setPiecePos(piece, eval(`${piece}b`), sxb, syb, i, j, 'black');
+                eval(`${piece}b++`);
+            }
 
-            if (piece == 'p') {
-                setPiecePos(piece, pb, sxb, syb, i, j, 'black');
-                pb++;
-            }
-            if (piece == 'n') {
-                setPiecePos(piece, nb, sxb, syb, i, j, 'black');
-                nb++;
-            }
-            if (piece == 'b') {
-                setPiecePos(piece, bb, sxb, syb, i, j, 'black');
-                bb++;
-            }
-            if (piece == 'r') {
-                setPiecePos(piece, rb, sxb, syb, i, j, 'black');
-                rb++;
-            }
-            if (piece == 'q') {
-                black[blackNaming[piece]].position.x = sxb;
-                black[blackNaming[piece]].position.y = syb;
-                qb++;
-                chessboardStatus[i][j] = black[blackNaming[piece]];
-            }
-            if (piece == 'k') {
-                black[blackNaming[piece]].position.x = sxb;
-                black[blackNaming[piece]].position.y = syb;
-                kb++;
-                chessboardStatus[i][j] = black[blackNaming[piece]];
-            }
         } else { // white            
             piece = piece.toLowerCase();
-
-            if (piece == 'p') {
-                setPiecePos(piece, pw, sxw, syw, i, j, 'white');
-                pw++;
-            }
-            if (piece == 'n') {
-                setPiecePos(piece, nw, sxw, syw, i, j, 'white');
-                nw++;
-            }
-            if (piece == 'b') {
-                setPiecePos(piece, bw, sxw, syw, i, j, 'white');
-                bw++;
-            }
-            if (piece == 'r') {
-                setPiecePos(piece, rw, sxw, syw, i, j, 'white');
-                rw++;
-            }
-            if (piece == 'q') {
-                white[whiteNaming[piece]].position.x = sxw;
-                white[whiteNaming[piece]].position.y = syw;
-                qw++;
-                chessboardStatus[i][j] = white[whiteNaming[piece]];
-            }
-            if (piece == 'k') {
-                white[whiteNaming[piece]].position.x = sxw;
-                white[whiteNaming[piece]].position.y = syw;
-                kw++;
-                chessboardStatus[i][j] = white[whiteNaming[piece]];
+            
+            if(piece == 'q' || piece == 'k') {
+                setPiecePos(piece, '', sxw, syw, i, j, 'white');
+                eval(`${piece}w++`);
+            }else {
+                setPiecePos(piece, eval(`${piece}w`), sxw, syw, i, j, 'white');
+                eval(`${piece}w++`);
             }
         }
-
         syw += 6;
         syb -= 6;
     }
 
     // check if there are dead pieces
+    let num, aux;
+    for(let piece of 'rnbqkp') {
+        for(let color of 'wb') {
 
-    // root
-    try {
-        if (rw != 3) {
-            for (let index = rw; rw < 3; index++) {
-                white[whiteNaming[`r${index}`]].position.x += 24;
-                deadWhite[whiteNaming[`r${index}`]] = white[whiteNaming[`r${index}`]];
+            if(piece == 'q' || piece == 'k')
+                num = 2;
+            else if(piece == 'p')
+                num = (color == 'w' ? 16 : 8);
+            else 
+                num = 3;
+
+            aux = eval(`${piece}${color}`);
+            if(aux != num ) {
+                for(let index = aux; index < num; index++) {
+                    ((piece == 'q' || piece == 'k') ?
+                        setDeadPosition(piece, '', color) : 
+                        setDeadPosition(piece, index, color));                       
+                }
             }
         }
-    } catch (err) { }
-    try {
-        if (rb != 3) {
-            for (let index = rb; rb < 3; index++) {
-                black[blackNaming[`r${index}`]].position.x += 24;
-                deadBlack[blackNaming[`r${index}`]] = black[blackNaming[`r${index}`]];
-            }
-        }
-    } catch (err) { }
+    }
+}
 
-    // knight
-    try {
-        if (nw != 3) {
-            for (let index = nw; nw < 3; index++) {
-                white[whiteNaming[`n${index}`]].position.x += 24;
-                deadWhite[whiteNaming[`n${index}`]] = white[whiteNaming[`n${index}`]];
-            }
-        }
-    } catch (err) { }
+function setDeadPosition(piece, type, color) {
+    let movinDistance = 24;
+    if (piece == 'p') movinDistance = 18;
 
-    try {
-        if (nb != 3) {
-            for (let index = nb; nb < 3; index++) {
-                black[blackNaming[`n${index}`]].position.x += 24;
-                deadBlack[blackNaming[`n${index}`]] = black[blackNaming[`n${index}`]];
-            }
-        }
-    } catch (err) { }
-
-    // bishop
-    try {
-        if (bw != 3) {
-            for (let index = bw; bw < 3; index++) {
-                white[whiteNaming[`b${index}`]].position.x += 24;
-                deadWhite[whiteNaming[`b${index}`]] = white[whiteNaming[`b${index}`]];
-            }
-        }
-    } catch (err) { }
-
-    try {
-        if (bb != 3) {
-            for (let index = bb; bb < 3; index++) {
-                black[blackNaming[`b${index}`]].position.x += 24;
-                deadBlack[blackNaming[`b${index}`]] = black[blackNaming[`b${index}`]];
-            }
-        }
-    } catch (err) { }
-
-    // pawn
-    try {
-        if (pb != 8) {
-            for (let index = pb; pb < 8; index++) {
-                black[blackNaming[`p${index}`]].position.x += 18;
-                deadBlack[blackNaming[`p${index}`]] = black[blackNaming[`p${index}`]];
-            }
-        }
-    } catch (err) { }
-
-    try {
-        if (pw != 16) {
-            for (let index = pw; pw < 16; index++) {
-                white[whiteNaming[`p${index}`]].position.x += 18;
-                deadWhite[whiteNaming[`p${index}`]] = white[whiteNaming[`p${index}`]];
-            }
-        }
-    } catch (err) { }
-
-    // queen    
-    try {
-        if (qw != 2) {
-            white[whiteNaming['q']].position.x += 24;
-            deadWhite[whiteNaming['q']] = white[whiteNaming['q']];
-        }
-    } catch (err) { }
-
-    try {
-        if (qb != 2) {
-            black[blackNaming['q']].position.x += 24;
-            deadBlack[blackNaming['q']] = black[blackNaming['q']];
-        }
-    } catch (err) { }
-
-    // king
-    try {
-        if (kw != 2) {
-            white[whiteNaming['k']].position.x += 24;
-            deadWhite[whiteNaming['k']] = white[whiteNaming['k']];
-        }
-    } catch (err) { }
-
-    try {
-        if (kb != 2) {
-            black[blackNaming['k']].position.x += 24;
-            deadBlack[blackNaming['k']] = black[blackNaming['k']];
-        }
-    } catch (err) { }
+    if (color == 'w') {
+        white[whiteNaming[`${piece}${type}`]].position.x += movinDistance;
+        deadWhite[whiteNaming[`${piece}${type}`]] = white[whiteNaming[`${piece}${type}`]];
+    } else {
+        black[blackNaming[`${piece}${type}`]].position.x += movinDistance;
+        deadBlack[blackNaming[`${piece}${type}`]] = black[blackNaming[`${piece}${type}`]];
+    }
 }
 
 /*
 animate -> animate the scene
 */
 function animate() {
-
-    for (let i = 0; i < views.length; ++i) {
-        views[i].render();
-    }
-    animateStars();
+    
+    views[0].render();
+    // animateStars();
     requestAnimationFrame(animate);
 }
-
 
 /*
 addSpehere -> add spheres (starts) to the scene
@@ -668,58 +536,3 @@ function animateStars() {
         if (star.position.z > 1500) star.position.z -= 2500;
     }
 }
-
-// EXAMPLE ICOSAEDRON
-
-// const canvas = document.createElement('canvas');
-// canvas.width = 128;
-// canvas.height = 128;
-
-// const context = canvas.getContext('2d');
-// const gradient = context.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
-// gradient.addColorStop(0.1, 'rgba(210,210,210,1)');
-// gradient.addColorStop(1, 'rgba(255,255,255,1)');
-
-// context.fillStyle = gradient;
-// context.fillRect(0, 0, canvas.width, canvas.height);
-
-// const noof_balls = 10;
-// const radius = 100;
-
-// const geometry1 = new THREE.IcosahedronGeometry(radius, 1);
-
-// const count = geometry1.attributes.position.count;
-// geometry1.setAttribute('color', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
-
-// const color = new THREE.Color();
-// const positions = geometry1.attributes.position;
-// const colors = geometry1.attributes.color;
-
-// for (let i = 0; i < count; i++) {
-//     color.setHSL((positions.getY(i) / radius + 1) / 2, 1.0, 0.5);
-//     colors.setXYZ(i, color.r, color.g, color.b);
-// }
-
-// const material = new THREE.MeshPhongMaterial({
-//     color: 0xffffff,
-//     flatShading: true,
-//     vertexColors: true,
-//     shininess: 0
-// });
-
-// const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true });
-
-// for (let i = 0; i < noof_balls; i++) { // create balls
-
-//     const mesh = new THREE.Mesh(geometry1, material);
-//     const wireframe = new THREE.Mesh(geometry1, wireframeMaterial);
-//     mesh.add(wireframe);
-
-//     mesh.position.x = - (noof_balls - 1) / 2 * 400 + i * 400;
-//     mesh.rotation.x = i * 0.5;
-
-//     scene.add(mesh);
-
-// }
-
-// END EXAMPLE ICOSAEDRON

@@ -189,5 +189,5 @@ io.on('connect', socket => {
 });
 
 http.listen(port, () => {
-    console.log(`Listening on port ${port}`);
+    console.log(`Listening: localhost:${port}`);
 });
