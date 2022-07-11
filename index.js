@@ -115,11 +115,8 @@ io.on('connect', socket => {
 
         if (activeScreens == nScreens) {
             let r = 0;
-            // for (let i = 1; i <= Object.keys(superRes).length; ++i) {
-            //     r += superRes[i];
-            //     console.log(`screen ${i}: ${superRes[i]}`);
-            // }
-
+            let pos = []
+            
             Object.entries(superRes).forEach(res => {
                 console.log(res[1]);
                 r += res[1];
@@ -127,10 +124,16 @@ io.on('connect', socket => {
 
             console.log('sending start signal');
 
+
+            for(let index = 0; index < 4000; index++) {
+                pos[index] = [Math.random() * 2000 - 500, Math.random() * 2000 - 500]
+            }
+
             io.to('screen').emit('start', {
                 width: r,
                 height: 0,
                 child: superRes,
+                pos: pos
             })
         }
     });
@@ -155,7 +158,8 @@ io.on('connect', socket => {
         console.log('Move: ' + data.move);
 
         io.to('screen').emit('updateFen', {
-            status: data.status
+            status: data.status,
+            move: data.move
         });
 
         // io.to('screen').emit('move', {
@@ -174,7 +178,8 @@ io.on('connect', socket => {
         console.log('Current Board: ' + data.status);
 
         io.to('screen').emit('updateFen', {
-            status: data.status
+            status: data.status,
+            move: ''
         });
         // emit curent borad status to the screens
         // io.to('screen').emit('currentStatus', {
