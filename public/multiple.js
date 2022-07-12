@@ -12,6 +12,9 @@ let startX = 0;
 let startY = 0;
 let camera;
 let chessboard;
+let satellite;
+let earth;
+let packageSat;
 let white = [];
 let black = [];
 let starPos = [];
@@ -157,6 +160,14 @@ socket.on('updatePosScreen', (pos) => {
     camera.position.z = pos.z;
 });
 
+/* demoMove -> apple the move recieved from the server 
+@param {Array} move, array of strings [srcSquare, targetSquare]
+*/
+socket.on('demoMove', (data) => {
+    setTimeout(() => { move(data.main[0], data.main[1]) }, data.index*1000);
+});
+
+
 window.onload = function () {
     document.addEventListener('keydown', onDocumentKeyDown, false);
 }
@@ -171,13 +182,9 @@ const onDocumentKeyDown = (event) => {
     } else if (keyCode == 83) { // s
         camera.position.z -= 10;
     } else if (keyCode == 65) {
-        camera.position.x -= 50;
-    } else if (keyCode == 68) {
         camera.position.x += 50;
-    } else if (keyCode == 13) {  // enter
-        startDemoView();
-    } else if (keyCode == 8) { // back space
-        move('A2','A4');
+    } else if (keyCode == 68) {
+        camera.position.x -= 50;
     } else { return; }
 
     socket.emit('updatePos', {
@@ -276,19 +283,18 @@ function init() {
     light.position.set(0, 0, 10).normalize();
     scene.add(light);
 
+    const ambienLight = new THREE.AmbientLight(0xffffff, 0.1);
+    scene.add(ambienLight);
+
     try {
         const loader = new THREE.GLTFLoader();
         // Load a glTF resource
         loader.load(
-            // resource URL
             'models/scene.gltf',
-            // called when the resource is loaded
             function (gltf) {
 
                 chessboard = gltf.scene;
                 chessboard.rotation.x = Math.PI / 3.5;
-                // chessboard.rotation.y = Math.PI / 2;
-
 
                 // chessboard.position.x -= (canvas1.clientWidth / 2);
                 camera.position.x = chessboard.position.x;
@@ -316,13 +322,16 @@ function init() {
                 });
 
                 // Border chessboard color
-                chessboard.children[0].children[0].children[0].children[4].children[0].children[0].material.color.setHex(0xFFFFFF);
+                chessboard.children[0].children[0].children[0].children[4]
+                .children[0]
+                .children[0]
+                .material.dispose(); // .color.setHex(0xFFFFFF);
 
-                // White squares color
-                chessboard.children[0].children[0].children[0].children[4].children[1].children[0].material.color.setHex(0xF2C886);
+                // White squares color brown - 0xF2C886 blue - 0x86C6F2
+                chessboard.children[0].children[0].children[0].children[4].children[1].children[0].material.color.setHex(0x86C6F2);
 
-                // Black squares color
-                chessboard.children[0].children[0].children[0].children[4].children[1].children[1].material.color.setHex(0xCF9218);
+                // Black squares color brown - 0xCF9218 blue - 0x2586C9
+                chessboard.children[0].children[0].children[0].children[4].children[1].children[1].material.color.setHex(0x2586C9);
 
                 // add chessboard to the main scene
                 scene.add(chessboard);
@@ -337,9 +346,45 @@ function init() {
             },
             // called when loading has errors
             function (error) {
-                console.log('An error happened');
+                console.log('An error happened chess');
             }
         );
+
+        loader.load(
+            'models/sat/scene.gltf',
+            function(gltf) {
+                console.log(gltf);
+                satellite = gltf.scene;
+                satellite.rotation.x = Math.PI / 1.5;
+                satellite.rotation.y = Math.PI / 3;
+                // satellite.scale.set(1,1,1);
+
+                satellite.position.x += 1700;
+                scene.add(satellite);
+            },
+            function(xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function(error) {
+                console.log('An error happened sat');
+            }
+        );
+
+        loader.load(
+            'models/earth/scene.gltf',
+            function(gltf) {
+                earth = gltf.scene;
+                earth.position.x += 1000;
+                scene.add(earth);
+            },
+            function(xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function(error) {
+                console.log('An error happened earth');
+            }
+        );
+
     } catch (err) {
         console.log('ERROR\n', err)
     }
@@ -372,15 +417,6 @@ setPiecePos -> set the position of a piece in the visualization and in the statu
 */
 function setPiecePos(piece, type, sx, sy, i, j, color) {
 
-    // if (color == 'white') {
-    //     white[whiteNaming[`${piece}${type}`]].position.x = sx;
-    //     white[whiteNaming[`${piece}${type}`]].position.y = sy;
-    //     chessboardStatus[i][j] = white[whiteNaming[`${piece}${type}`]];
-    // } else {
-    //     black[blackNaming[`${piece}${type}`]].position.x = sx;
-    //     black[blackNaming[`${piece}${type}`]].position.y = sy;
-    //     chessboardStatus[i][j] = black[blackNaming[`${piece}${type}`]];
-    // }
     if (color == 'white') {
 
         new TWEEN.Tween(white[whiteNaming[`${piece}${type}`]].position)
@@ -402,8 +438,8 @@ function move(srcSquare, targetSquare) {
     let src = [srcSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(srcSquare[1]) - 1];
     let dest = [targetSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(targetSquare[1]) - 1];
     
-    console.log(src);
-    console.log(dest);
+    // console.log(src);
+    // console.log(dest);
 
     
     let movinDistance = 39;
@@ -543,7 +579,17 @@ function animate() {
 
     views[0].render();
     TWEEN.update();
-    animateStars();
+    animateStars();   
+    
+    // move the satellite around the earth (orbit)
+    if(satellite && earth) {
+        satellite.position.x = earth.position.x + Math.cos(Date.now() / 1000) * 250;
+        satellite.position.y = earth.position.y + Math.sin(Date.now() / 1000) * 250;
+
+        console.log(satellite.position.x);
+        console.log(satellite.position.y);
+        // satellite.position.z = earth.position.z + Math.cos(Date.now() / 1000) * 250;
+    }
     requestAnimationFrame(animate);
 }
 
@@ -583,105 +629,4 @@ function animateStars() {
         // respawn the star when its position is close to the camera
         if (star.position.z > 1500) star.position.z -= 2500;
     }
-}
-
-
-// printFen('4k2r/6r1/8/8/8/8/3R4/R3K3');
-// printFen('8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8');
-// printFen('rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R');
-// printFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-// printFen("rnbqkbnr/8/8/8/8/8/8/RNBQKBNR");
-
-function startDemoView() {
-    // start position
-    printFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
-    
-    // print a gamechess moves using move('source', 'target')
-    
-    setTimeout(() => { move('E2', 'E4'); }, 1*1000);
-    setTimeout(() => { move('B8', 'C6'); }, 2*1000);
-    setTimeout(() => { move('G1', 'F3'); }, 3*1000);
-    setTimeout(() => { move('D7', 'D5'); }, 4*1000);
-    setTimeout(() => { move('B1', 'C3'); }, 5*1000);
-    setTimeout(() => { move('G8', 'F6'); }, 6*1000);
-    setTimeout(() => { move('C3', 'D5'); }, 7*1000);
-    setTimeout(() => { move('F6', 'E4'); }, 8*1000);
-    setTimeout(() => { move('F1', 'C4'); }, 9*1000);
-    setTimeout(() => { move('E7', 'E5'); }, 10*1000);
-    setTimeout(() => { move('D1', 'E2'); }, 11*1000);
-    setTimeout(() => { move('C8', 'F5'); }, 12*1000);
-    setTimeout(() => { move('E1', 'G1'); move('H1','F1'); }, 13*1000); // castling
-    setTimeout(() => { move('D8', 'D6'); }, 14*1000);
-    setTimeout(() => { move('D2', 'D3'); }, 15*1000);
-    setTimeout(() => { move('C6', 'D4'); }, 16*1000);
-    setTimeout(() => { move('F3', 'D4'); }, 17*1000);
-    setTimeout(() => { move('E5', 'D4'); }, 18*1000);
-    setTimeout(() => { move('D3', 'E4'); }, 19*1000);
-    setTimeout(() => { move('F5', 'G6'); }, 20*1000);
-    setTimeout(() => { move('C1', 'F4'); }, 21*1000);
-    setTimeout(() => { move('D4', 'D3'); }, 22*1000);
-    setTimeout(() => { move('C4', 'B5'); }, 23*1000);
-    setTimeout(() => { move('C7', 'C6'); }, 24*1000);
-    setTimeout(() => { move('E2', 'D3'); }, 25*1000);
-    setTimeout(() => { move('D6', 'D7'); }, 26*1000);
-    setTimeout(() => { move('D5', 'C7'); }, 27*1000);
-    setTimeout(() => { move('E8', 'E7'); }, 28*1000);
-    setTimeout(() => { move('F4', 'G5'); }, 29*1000);
-    setTimeout(() => { move('F7', 'F6'); }, 30*1000);
-    setTimeout(() => { move('G5', 'F6'); }, 31*1000);
-    setTimeout(() => { move('G7', 'F6'); }, 32*1000);
-    setTimeout(() => { move('D3', 'D7'); }, 33*1000);
-    setTimeout(() => { move('E7', 'D7'); }, 34*1000);
-    setTimeout(() => { move('C7', 'A8'); }, 35*1000);
-    setTimeout(() => { move('C6', 'B5'); }, 36*1000);
-    setTimeout(() => { move('F2', 'F3'); }, 37*1000);
-    setTimeout(() => { move('F8', 'C5'); }, 38*1000);
-    setTimeout(() => { move('G1', 'H1'); }, 39*1000);
-    setTimeout(() => { move('H8', 'A8'); }, 40*1000);
-    setTimeout(() => { move('A1', 'D1'); }, 41*1000);
-    setTimeout(() => { move('D7', 'C8'); }, 42*1000);
-    setTimeout(() => { move('F1', 'E1'); }, 43*1000);
-    setTimeout(() => { move('C8', 'B8'); }, 44*1000);
-    setTimeout(() => { move('D1', 'D8'); }, 45*1000);
-    setTimeout(() => { move('B8', 'C7'); }, 46*1000);
-    setTimeout(() => { move('D8', 'A8'); }, 47*1000);
-    setTimeout(() => { move('B5', 'B4'); }, 48*1000);
-    setTimeout(() => { move('C2', 'C3'); }, 49*1000);
-    setTimeout(() => { move('B4', 'C3'); }, 50*1000);
-    setTimeout(() => { move('B2', 'C3'); }, 51*1000);
-    setTimeout(() => { move('C5', 'B6'); }, 52*1000);
-    setTimeout(() => { move('E1', 'D1'); }, 53*1000);
-    setTimeout(() => { move('H7', 'H6'); }, 54*1000);
-    setTimeout(() => { move('A8', 'F8'); }, 55*1000);
-    setTimeout(() => { move('A7', 'A6'); }, 56*1000);
-    setTimeout(() => { move('F8', 'F6'); }, 57*1000);
-    setTimeout(() => { move('G6', 'H5'); }, 58*1000);
-    setTimeout(() => { move('G2', 'G4'); }, 59*1000);
-    setTimeout(() => { move('H5', 'E8'); }, 60*1000);
-    setTimeout(() => { move('F6', 'H6'); }, 61*1000);
-    setTimeout(() => { move('E8', 'C6'); }, 62*1000);
-    setTimeout(() => { move('H6', 'H7'); }, 63*1000);
-    setTimeout(() => { move('C7', 'B8'); }, 64*1000);
-    setTimeout(() => { move('G4', 'G5'); }, 65*1000);
-    setTimeout(() => { move('B6', 'C5'); }, 66*1000);
-    setTimeout(() => { move('H7', 'G7'); }, 67*1000);
-    setTimeout(() => { move('C5', 'B6'); }, 68*1000);
-    setTimeout(() => { move('G5', 'G6'); }, 69*1000);
-    setTimeout(() => { move('B6', 'C5'); }, 70*1000);
-    setTimeout(() => { move('H2', 'H3'); }, 71*1000);
-    setTimeout(() => { move('C5', 'E3'); }, 72*1000);
-    setTimeout(() => { move('H1', 'H2'); }, 73*1000);
-    setTimeout(() => { move('E3', 'C5'); }, 74*1000);
-    setTimeout(() => { move('G7', 'F7'); }, 75*1000);
-    setTimeout(() => { move('A6', 'A5'); }, 76*1000);
-    setTimeout(() => { move('G6', 'G7'); }, 77*1000);
-    setTimeout(() => { move('C5', 'D6'); }, 78*1000);
-    setTimeout(() => { move('D1', 'D6'); }, 79*1000);
-    setTimeout(() => { move('C6', 'B5'); }, 80*1000);
-    setTimeout(() => { move('G7', 'G8'); }, 81*1000);
-    setTimeout(() => { move('B8', 'A7'); }, 82*1000);
-    setTimeout(() => { move('G8', 'G1'); }, 83*1000);
-    setTimeout(() => { move('A7', 'B8'); }, 84*1000);
-    setTimeout(() => { move('D6', 'D8'); }, 86*1000);
-    setTimeout(() => { printFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'); }, 87*1000);
 }
