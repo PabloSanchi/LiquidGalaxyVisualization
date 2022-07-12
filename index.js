@@ -3,6 +3,7 @@ import httpImport from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
 import path from 'path';
+import { moves } from './public/game/demo.js';
 
 var app = express();
 var http = httpImport.createServer(app);
@@ -30,6 +31,8 @@ var screenNumber = 1;
 var activeScreens = 0;
 var myArgs = process.argv.slice(2); // get nScreens input 
 var nScreens = Number(myArgs[0]);
+var okDemo = false;
+
 if (myArgs.length == 0 || isNaN(nScreens)) {
     console.log("Number of screens invalid or not informed, default number is 3.");
     nScreens = 5;
@@ -56,17 +59,17 @@ app.get('/:id', (req, res) => {
     if (id == "controller") {
         res.sendFile(__dirname + `${filePath}/${controllerFile}`);
     } else {
-        if(id <= nScreens) {
+        if (id <= nScreens) {
             screenNumber = id
             res.sendFile(__dirname + `${filePath}/${pruebas}`);
-        }else {
+        } else {
             res.send(`
             <body style="background-color: black;">
                 <h1 style="font-family: Sans-serif; color: white;">
                     make sure that npm start SCREENUM is properly set
                 </h1>
             </body>
-            `);  
+            `);
         }
     }
     // }
@@ -90,7 +93,8 @@ io.on('connect', socket => {
     if (socket.handshake.query.mobile == 'true') {
         console.log('MOBILE');
         socket.join('mobile');
-    } else if(socket.handshake.query.controller == 'true') {
+        okDemo = false;
+    } else if (socket.handshake.query.controller == 'true') {
         console.log('CONTROLLER');
         socket.join('controller');
     } else {
@@ -103,7 +107,7 @@ io.on('connect', socket => {
         console.log('user left');
     });
 
-    if(!(socket.handshake.query.mobile == 'true') && !(socket.handshake.query.controller == 'true')) {
+    if (!(socket.handshake.query.mobile == 'true') && !(socket.handshake.query.controller == 'true')) {
         io.to(socket.id).emit('update', {
             id: screenNumber
         });
@@ -116,7 +120,7 @@ io.on('connect', socket => {
         if (activeScreens == nScreens) {
             let r = 0;
             let pos = []
-            
+
             Object.entries(superRes).forEach(res => {
                 console.log(res[1]);
                 r += res[1];
@@ -124,8 +128,8 @@ io.on('connect', socket => {
 
             console.log('sending start signal');
 
-
-            for(let index = 0; index < 4000; index++) {
+            // stars coordinates (same for all screens)
+            for (let index = 0; index < 4000; index++) {
                 pos[index] = [Math.random() * 2000 - 500, Math.random() * 2000 - 500]
             }
 
@@ -154,6 +158,7 @@ io.on('connect', socket => {
         @param {Object} data; contains the status (string) and the move (string)
     */
     socket.on('newStatus', (data) => {
+        okDemo = false;
         console.log('FEN: ' + data.status);
         console.log('Move: ' + data.move);
 
@@ -161,11 +166,6 @@ io.on('connect', socket => {
             status: data.status,
             move: data.move
         });
-
-        // io.to('screen').emit('move', {
-        //     status: data.status,
-        //     move: data.move
-        // });
     });
 
     /*
@@ -175,23 +175,73 @@ io.on('connect', socket => {
     @param {Object} data; contains the status (string)
     */
     socket.on('currentBoard', (data) => {
+        okDemo = false;
         console.log('Current Board: ' + data.status);
 
         io.to('screen').emit('updateFen', {
             status: data.status,
             move: ''
         });
-        // emit curent borad status to the screens
-        // io.to('screen').emit('currentStatus', {
-        //     status: data.status
-        // });
     });
 
+    /*
+    controllerMove -> use the device or proper controller to move around the screens
+    @param {Object} data; X and Z coordinates
+    */
     socket.on('controllerMove', (data) => {
         io.to('screen').emit('controllerUpdate', data);
     });
 
+    /*
+    showDemo, send the screen a chess complete game
+    to show how to game works
+    @param {Object} data; contains all the moves
+    */
+    socket.on('showDemo', () => {
+        okDemo = true;
+
+        // reset keyboard
+        io.to('screen').emit('updateFen', {
+            status: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+            move: ''
+        });
+
+        console.log(moves);
+        let cont = 1;
+
+        moves.every(async (move) => {
+            if (!okDemo) return false;
+            console.log('move --> ');
+            io.to('screen').emit('demoMove', {
+                main: move,
+                index: cont
+            });
+            
+            cont++;
+            return true
+        });
+
+    });
+
+    /*
+    stopDemo, stop the ongoing demo
+    */
+    socket.on('stopDemo', () => {
+        console.log('Demo Stoped');
+        okDemo = false;
+    });
+
 });
+
+
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+        currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+}
+
 
 http.listen(port, () => {
     console.log(`Listening: localhost:${port}`);
