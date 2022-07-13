@@ -8,13 +8,10 @@ let done = false;
 
 let fullWidth = 1;
 let fullHeight = 1;
-let startX = 0;
-let startY = 0;
+let startX = 0, startY = 0;
 let camera;
-let chessboard;
-let satellite;
-let earth;
-let packageSat;
+let chessboard, satellite, earth, packageSat;
+let sendRecieve = false;
 let white = [];
 let black = [];
 let starPos = [];
@@ -98,20 +95,44 @@ socket.on('start', (superRes) => {
     // calculate each screen startX
     let scRes = superRes.child;
 
-    // master is 0
-    // left screens have negative values (negative offset)
-    // right screens have positive values (positive offset)
+    // old calc
+    // // master is 0
+    // // left screens have negative values (negative offset)
+    // // right screens have positive values (positive offset)
+    // startX = 0;
+
+    // // right side screens
+    // if (screen % 2 == 0) {
+    //     startX = scRes[1];
+    //     for (let index = 2; index < screen; index += 2) {
+    //         startX += scRes[index];
+    //     }
+    // } else { // left side screens
+    //     for (let index = 3; index <= screen; index += 2) {
+    //         startX -= scRes[index];
+    //     }
+    // }
+    // new calc
+
+    let keys = Object.keys(scRes);
+    let arr = keys.map(Number).filter(e => e % 2 != 0);
+
     startX = 0;
 
-    // right side screens
-    if (screen % 2 == 0) {
-        startX = scRes[1];
-        for (let index = 2; index < screen; index += 2) {
-            startX += scRes[index];
+    if (screen % 2 != 0) {
+        if (Math.max(...arr) == screen) {
+            startX = 0;
+        } else {
+            for (let index = Math.max(...arr); index > screen; index -= 2) {
+                startX += scRes[index]
+            }
         }
-    } else { // left side screens
-        for (let index = 3; index <= screen; index += 2) {
-            startX -= scRes[index];
+    } else {
+        for (let index = Math.max(...arr); index > 1; index -= 2) {
+            startX += scRes[index]
+        }
+        for (let index = 2; index <= screen; index += 2) {
+            startX += scRes[index];
         }
     }
 
@@ -129,7 +150,7 @@ socket.on('start', (superRes) => {
 /*
 */
 socket.on('updateFen', (fen) => {
-    if(fen.move == '') printFen(fen.status);
+    if (fen.move == '') printFen(fen.status);
     else {
         console.log('fen: ' + fen.status);
         printFen(fen.status);
@@ -164,7 +185,7 @@ socket.on('updatePosScreen', (pos) => {
 @param {Array} move, array of strings [srcSquare, targetSquare]
 */
 socket.on('demoMove', (data) => {
-    setTimeout(() => { move(data.main[0], data.main[1]) }, data.index*1000);
+    setTimeout(() => { move(data.main[0], data.main[1]) }, data.index * 1000);
 });
 
 
@@ -193,6 +214,48 @@ const onDocumentKeyDown = (event) => {
     });
 }
 
+
+/*
+goEarth -> move the camera to the earth view
+*/
+socket.on('goEarth', () => {
+    var position = new THREE.Vector3().copy(camera.position);
+
+    new TWEEN.Tween(position)
+        .to({ x: 1000, z: 1500 }, 2000)
+        .easing(TWEEN.Easing.Back.InOut)
+        .onUpdate(function () {
+            camera.position.copy(position);
+        })
+        .onComplete(function () {
+            camera.position.x = position.x;
+            camera.position.z = position.z;
+        })
+        .start();
+});
+
+/*
+goChess -> move the camera to the chess view
+*/
+socket.on('goChess', () => {
+    var position = new THREE.Vector3().copy(camera.position);
+
+    new TWEEN.Tween(position)
+        .to({ x: 0, z: 1000 }, 2000)
+        .easing(TWEEN.Easing.Back.InOut)
+        .onUpdate(function () {
+            camera.position.copy(position);
+        })
+        .onComplete(function () {
+            camera.position.x = position.x;
+            camera.position.z = position.z;
+        })
+        .start();
+});
+
+/*
+controllerUpdate -> move the camera
+*/
 socket.on('controllerUpdate', (data) => {
     camera.position.x += data.x;
     camera.position.z += data.z;
@@ -273,7 +336,6 @@ function init() {
     console.log('canvas w: ' + canvas1.clientWidth);
     console.log('canvas h: ' + canvas1.clientHeight);
 
-
     views.push(new View(canvas1, fullWidth, fullHeight, startX, 0, canvas1.clientWidth, canvas1.clientHeight));
 
     scene = new THREE.Scene();
@@ -288,7 +350,7 @@ function init() {
 
     try {
         const loader = new THREE.GLTFLoader();
-        // Load a glTF resource
+        // load chessboard model
         loader.load(
             'models/scene.gltf',
             function (gltf) {
@@ -299,6 +361,7 @@ function init() {
                 // chessboard.position.x -= (canvas1.clientWidth / 2);
                 camera.position.x = chessboard.position.x;
                 camera.position.y = chessboard.position.y;
+                camera.position.z = chessboard.position.z + 1000;
 
                 light.position.set(10, 100, 200).normalize();
 
@@ -323,9 +386,9 @@ function init() {
 
                 // Border chessboard color
                 chessboard.children[0].children[0].children[0].children[4]
-                .children[0]
-                .children[0]
-                .material.dispose(); // .color.setHex(0xFFFFFF);
+                    .children[0]
+                    .children[0]
+                    .material.dispose(); // .color.setHex(0xFFFFFF);
 
                 // White squares color brown - 0xF2C886 blue - 0x86C6F2
                 chessboard.children[0].children[0].children[0].children[4].children[1].children[0].material.color.setHex(0x86C6F2);
@@ -350,9 +413,10 @@ function init() {
             }
         );
 
+        // load satellite model
         loader.load(
             'models/sat/scene.gltf',
-            function(gltf) {
+            function (gltf) {
                 console.log(gltf);
                 satellite = gltf.scene;
                 satellite.rotation.x = Math.PI / 1.5;
@@ -362,26 +426,51 @@ function init() {
                 satellite.position.x += 1700;
                 scene.add(satellite);
             },
-            function(xhr) {
+            function (xhr) {
                 console.log((xhr.loaded / xhr.total * 100) + '% loaded');
             },
-            function(error) {
+            function (error) {
                 console.log('An error happened sat');
             }
         );
 
+        // load earth model
         loader.load(
             'models/earth/scene.gltf',
-            function(gltf) {
+            function (gltf) {
                 earth = gltf.scene;
                 earth.position.x += 1000;
                 scene.add(earth);
             },
-            function(xhr) {
+            function (xhr) {
                 console.log((xhr.loaded / xhr.total * 100) + '% loaded');
             },
-            function(error) {
+            function (error) {
                 console.log('An error happened earth');
+            }
+        );
+
+        // load package model
+        loader.load(
+            'models/packet/scene.gltf',
+            function (gltf) {
+                packageSat = gltf.scene;
+                packageSat.position.x += 1000;
+                scene.add(packageSat);
+
+                // rotate the package
+                packageSat.rotation.y = Math.PI / 2;
+
+                // make it invisible
+                packageSat.visible = false;
+
+                packageSat.scale.set(9, 9, 9);
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.log('An error happened packet');
             }
         );
 
@@ -437,32 +526,30 @@ function setPiecePos(piece, type, sx, sy, i, j, color) {
 function move(srcSquare, targetSquare) {
     let src = [srcSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(srcSquare[1]) - 1];
     let dest = [targetSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(targetSquare[1]) - 1];
-    
+
     // console.log(src);
     // console.log(dest);
 
-    
     let movinDistance = 39;
-    if(chessboardStatus[dest[0]][dest[1]] != null) {
+    if (chessboardStatus[dest[0]][dest[1]] != null) {
         let pieceName = chessboardStatus[dest[0]][dest[1]].name;
         var expresion = /^Pawn.*/gi;
-        if( expresion.test(pieceName) ) movinDistance = 33;
+        if (expresion.test(pieceName)) movinDistance = 33;
 
         new TWEEN.Tween(chessboardStatus[dest[0]][dest[1]].position)
-        .to({ x: movinDistance, y: initialPiecePos[pieceName] }, 700)
-        .start();
+            .to({ x: movinDistance, y: initialPiecePos[pieceName] }, 700)
+            .start();
     }
 
-    // move white piece from source square to destination square
-    
-    if(chessboardStatus[src[0]][src[1]].parent.name == 'White_Pieces002') { // white
+    // move piece from source square to destination square
+    if (chessboardStatus[src[0]][src[1]].parent.name == 'White_Pieces002') { // white
         new TWEEN.Tween(chessboardStatus[src[0]][src[1]].position)
-        .to({ x: (21 - dest[1]*6), y: (-21 + dest[0]*6) }, 700)
-        .start();
+            .to({ x: (21 - dest[1] * 6), y: (-21 + dest[0] * 6) }, 700)
+            .start();
     } else {
         new TWEEN.Tween(chessboardStatus[src[0]][src[1]].position)
-        .to({ x: (-21 + dest[1]*6), y: (21 - dest[0]*6) }, 700)
-        .start();
+            .to({ x: (-21 + dest[1] * 6), y: (21 - dest[0] * 6) }, 700)
+            .start();
     }
 
     chessboardStatus[dest[0]][dest[1]] = chessboardStatus[src[0]][src[1]];
@@ -555,6 +642,12 @@ function printFen(fen) {
     console.log(chessboardStatus);
 }
 
+/*
+setDeadPosition -> set the position of a dead piece in the visualization
+@param {String} piece, the piece type (r, n, b, q, k, p)
+@param {Number} type, number of the piece, examaple: p1, p2, ... ,p16, r1, r2
+@param {String} color, the color of the piece (w, b)
+*/
 function setDeadPosition(piece, type, color) {
     let movinDistance;
 
@@ -579,16 +672,55 @@ function animate() {
 
     views[0].render();
     TWEEN.update();
-    animateStars();   
-    
-    // move the satellite around the earth (orbit)
-    if(satellite && earth) {
-        satellite.position.x = earth.position.x + Math.cos(Date.now() / 1000) * 250;
-        satellite.position.y = earth.position.y + Math.sin(Date.now() / 1000) * 250;
+    animateStars();
 
-        console.log(satellite.position.x);
-        console.log(satellite.position.y);
-        // satellite.position.z = earth.position.z + Math.cos(Date.now() / 1000) * 250;
+    if (earth) {
+        earth.rotation.y -= 0.0003;
+    }
+
+    // move the satellite around the earth (orbit) and send/recieve packets
+    if (satellite && earth) {
+        satellite.position.x = earth.position.x + Math.cos(Date.now() / 2500) * 250;
+        satellite.position.y = earth.position.y + Math.sin(Date.now() / 2500) * 250;
+
+        if (
+            // 914 - 235
+            (Math.floor(satellite.position.x) >= 910 && Math.floor(satellite.position.x) <= 920) &&
+            (Math.floor(satellite.position.y) >= 230 && Math.floor(satellite.position.y) <= 240)
+        ) {
+            // make packet visible again
+            packageSat.visible = true;
+
+            if (sendRecieve) {
+                // packageSat position == eath poistion
+                packageSat.position.x = earth.position.x;
+                packageSat.position.y = earth.position.y;
+
+                // use tween to move the package from the earth to the satellite
+                // on complete packageSat.visible = false
+                // { x: satellite.position.x - 65, y: satellite.position.y + 50 }
+                new TWEEN.Tween(packageSat.position)
+                    .to({ x: (satellite.position.x - 30), y: (satellite.position.y - 15) }, 500)
+                    .easing(TWEEN.Easing.Cubic.Out)
+                    .onComplete(() => {
+                        sendRecieve = false;
+                        packageSat.visible = false;
+                    }).start();
+            } else {
+                // packageSat position == satellite poistion
+                packageSat.position.x = satellite.position.x;
+                packageSat.position.y = satellite.position.y;
+
+                // use tween to move the package from the satellite to the earth
+                // on complete packageSat.visible = false
+                new TWEEN.Tween(packageSat.position)
+                    .to({ x: earth.position.x, y: earth.position.y }, 2000)
+                    .onComplete(() => {
+                        sendRecieve = true;
+                        packageSat.visible = false;
+                    }).start();
+            }
+        }
     }
     requestAnimationFrame(animate);
 }

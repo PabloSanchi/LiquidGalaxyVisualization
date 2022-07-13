@@ -224,11 +224,17 @@ io.on('connect', socket => {
     });
 
     /*
-    stopDemo, stop the ongoing demo
+        showEarth -> tell the screens to show the earth
     */
-    socket.on('stopDemo', () => {
-        console.log('Demo Stoped');
-        okDemo = false;
+    socket.on('showEarth', () => {
+        io.to('screen').emit('goEarth');
+    });
+
+    /*
+        showChess ->  tell the screens to show the chess
+    */
+    socket.on('showChess', () => {
+        io.to('screen').emit('goChess');
     });
 
 });
