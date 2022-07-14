@@ -8,6 +8,7 @@ const left = document.getElementById('left');
 const right = document.getElementById('right');
 const chess = document.getElementById('chess');
 const earth = document.getElementById('earth');
+const demo = document.getElementById('demo');
 
 // emit 'controllerMove' with value offset of 50; socket.emit
 const send = (xVal, zVal) => {
@@ -40,4 +41,8 @@ chess.addEventListener('click', () => {
 
 earth.addEventListener('click', () => {
     socket.emit('showEarth');
+});
+
+demo.addEventListener('click', () => {
+    socket.emit('showDemo');
 });
