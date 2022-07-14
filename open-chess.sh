@@ -1,7 +1,7 @@
 #!/bin/bash
 . ${HOME}/etc/shell.conf
 
-npm start $1
+gnome-terminal -- npm start $1
 
 sleep 5
 
