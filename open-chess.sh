@@ -1,6 +1,10 @@
 #!/bin/bash
 . ${HOME}/etc/shell.conf
 
+npm start $1
+
+sleep 5
+
 port=8120;
 screenNumber=0;
 for lg in $LG_FRAMES ; do
