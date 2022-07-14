@@ -9,7 +9,7 @@ var app = express();
 var http = httpImport.createServer(app);
 var io = new Server(http, {
     cors: {
-        origin: '*',// "http://localhost:3000",
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
