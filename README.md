@@ -54,9 +54,12 @@ After the game is installed make sure to reboot your machine! Once it is done re
 
 After the packages are installed, then run the following command:
 ```bash
+bash open-chess.sh NUMSCREEN
+```
+<!-- ```bash
 npm start NUMSCREEN
 bash open-chess.sh
-```
+``` -->
 
 ***NUMSCREEN is the number of screens that you want to use, by deafult is 5, so make sure to set it properly according to your rig setup.***
 
@@ -64,16 +67,21 @@ bash open-chess.sh
 <p style="font-size: 15px;"> 
 ⚠️ Warning <br/>
  - IT MAY LAST A BIT TO LOAD THE CHESSBOARD <br/>
- - THE CHESSBOARD MAY APPEAR ON THE RIGHT SIDE (WILL BE SOLVED), YOU WILL BE ABLE TO MOVE IT ANYWAY
 </p>
 
 <!-- If you experience any problems, check the installation logs for any possible errors in the logs folder, there will be a file with the date of installation as it's name. -->
 
+
 If you are experiencing some errors while executing the `open-chess.sh` script, kill it and re-start it.
 - Stop the server
 - `bash kill-chess.sh`
+- Restart the server `bash open-chess.sh NUMSCREEN`
+
+<!-- If you are experiencing some errors while executing the `open-chess.sh` script, kill it and re-start it.
+- Stop the server
+- `bash kill-chess.sh`
 - Restart the server `npm start + additional config`
-- `bash open-chess.sh`
+- `bash open-chess.sh` -->
 
 ## Keyboard Controls (test only)
 - ZOOM: **w** & **s** keyboard keys
@@ -81,7 +89,7 @@ If you are experiencing some errors while executing the `open-chess.sh` script, 
 
 ## Web Controller (test only)
 Type on your browser the following url<br/>
-- MASTERIP:Port/Controller
+- MASTERIP:port/controller
   
 Example:
 ```bash
