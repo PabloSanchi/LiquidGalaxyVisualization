@@ -11,5 +11,5 @@ for lg in $LG_FRAMES ; do
         ssh -Xnf lg@$lg " export DISPLAY=:0 ; chromium-browser http://lg1:$port/$screenNumber --start-fullscreen </dev/null >/dev/null 2>&1 &" || true
 	fi
 
-   sleep 1
+   sleep 3
 done
