@@ -101,6 +101,12 @@ http://192.168.0.11:8120/controller
 <img src="./assets/controller.png" width="35%">
 </p>
 
+<p style="font-size: 15px;"> 
+⚠️ Warning <br/>
+- DEMO is only available in the web controller<br/>
+- DEMO cannot be stopped <br/>
+</p>
+
 ## 📺 Final view (3 Screen example)
 <p align="center">
 <img src="./assets/lgrigImage.png" width="70%">
