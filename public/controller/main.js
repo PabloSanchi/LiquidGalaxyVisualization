@@ -1,7 +1,6 @@
 var socket = io({query: "controller=true"});
 let nScreens;
 
-
 // dom varibales
 const up = document.getElementById('up');
 const down = document.getElementById('down');
