@@ -13,7 +13,9 @@ let camera;
 let chessboard, satellite, earth, packageSat;
 let sendRecieve = false;
 let white = [];
+let saveWhite = [];
 let black = [];
+let saveBlack = [];
 let starPos = [];
 
 let whiteNaming = {
@@ -95,25 +97,6 @@ socket.on('start', (superRes) => {
     // calculate each screen startX
     let scRes = superRes.child;
 
-    // old calc
-    // // master is 0
-    // // left screens have negative values (negative offset)
-    // // right screens have positive values (positive offset)
-    // startX = 0;
-
-    // // right side screens
-    // if (screen % 2 == 0) {
-    //     startX = scRes[1];
-    //     for (let index = 2; index < screen; index += 2) {
-    //         startX += scRes[index];
-    //     }
-    // } else { // left side screens
-    //     for (let index = 3; index <= screen; index += 2) {
-    //         startX -= scRes[index];
-    //     }
-    // }
-    // new calc
-
     let keys = Object.keys(scRes);
     let arr = keys.map(Number).filter(e => e % 2 != 0);
 
@@ -128,15 +111,13 @@ socket.on('start', (superRes) => {
             }
         }
     } else {
-        for (let index = Math.max(...arr); index > 1; index -= 2) {
+        for (let index = Math.max(...arr); index >= 1; index -= 2) {
             startX += scRes[index]
         }
-        for (let index = 2; index <= screen; index += 2) {
+        for (let index = 2; index < screen; index += 2) {
             startX += scRes[index];
         }
     }
-
-    // startX = Math.floor(screen / 2) * window.innerWidth * (screen % 2 != 0 ? -1 : 1);
 
     console.log('superRes: (' + fullWidth + ',' + fullHeight + ')');
     console.log('StartX: ' + startX + ' StartY: ' + startY);
@@ -206,6 +187,28 @@ const onDocumentKeyDown = (event) => {
         camera.position.x += 50;
     } else if (keyCode == 68) {
         camera.position.x -= 50;
+    } else if (keyCode == 37) { // <-
+
+        new TWEEN.Tween(chessboard.rotation)
+            .to({ y: chessboard.rotation._y + Math.PI / 2 }, 1000)
+            .start();
+
+    } else if (keyCode == 39) { // ->
+
+        new TWEEN.Tween(chessboard.rotation)
+            .to({ y: chessboard.rotation._y - Math.PI / 2 }, 1000)
+            .start();
+
+    } else if (keyCode == 90) {
+        move('E1', 'C1');
+    } else if (keyCode == 88) {
+        // printFen('r3k2r/8/8/8/8/8/8/R3K2R');
+        printFen('8/8/8/8/8/8/8/8');
+
+        new TWEEN.Tween(chessboard.rotation)
+            .to({ y: 0 }, 1000)
+            .start();
+
     } else { return; }
 
     socket.emit('updatePos', {
@@ -214,6 +217,24 @@ const onDocumentKeyDown = (event) => {
     });
 }
 
+/*
+setView -> set the camera view (white perspective, black perspective or global view);
+*/
+socket.on('setView', (data) => {
+    if (data.where == 'white') {
+        new TWEEN.Tween(chessboard.rotation)
+            .to({ y: 0 + Math.PI / 2 }, 1000)
+            .start();
+    } else if (data.where == 'black') {
+        new TWEEN.Tween(chessboard.rotation)
+            .to({ y: 0 - Math.PI / 2 }, 1000)
+            .start();
+    } else {
+        new TWEEN.Tween(chessboard.rotation)
+            .to({ y: 0 }, 1000)
+            .start();
+    }
+});
 
 /*
 goEarth -> move the camera to the earth view
@@ -339,7 +360,14 @@ function init() {
     views.push(new View(canvas1, fullWidth, fullHeight, startX, 0, canvas1.clientWidth, canvas1.clientHeight));
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    scene.background = new THREE.Color(0x000101);
+
+    //Load background texture
+    // const bgloader = new THREE.TextureLoader();
+    // bgloader.load('./bgimages/nebula.jpg' , function(texture)
+    // {
+    //     scene.background = texture
+    // });
 
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 0, 10).normalize();
@@ -365,23 +393,22 @@ function init() {
 
                 light.position.set(10, 100, 200).normalize();
 
-                console.log('ChessPosition: ' + chessboard.position.x);
                 console.log('chess:', chessboard);
-
 
                 // 1 white
                 chessboard.children[0].children[0].children[0].children[1].children.forEach((piece) => {
                     initialPiecePos[piece.name] = piece.position.y;
                     piece.children[0].material.color.setHex(0xDDDDDD);
                     white.push(piece);
+                    saveWhite.push(piece);
                 });
-
 
                 // 2 black
                 chessboard.children[0].children[0].children[0].children[2].children.forEach((piece) => {
                     initialPiecePos[piece.name] = piece.position.y;
                     piece.children[0].material.color.setHex(0x606060);
                     black.push(piece);
+                    saveBlack.push(piece);
                 });
 
                 // Border chessboard color
@@ -398,10 +425,10 @@ function init() {
 
                 // add chessboard to the main scene
                 scene.add(chessboard);
-                // camera.lookAt(chessboard.position);
 
                 // all pieces are dead (starting configuration)
                 printFen('8/8/8/8/8/8/8/8');
+
             },
             // called while loading is progressing
             function (xhr) {
@@ -481,7 +508,6 @@ function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(fullWidth, fullHeight);
-
     // document.addEventListener('mousemove', onDocumentMouseMove);
 }
 
@@ -502,35 +528,17 @@ function onDocumentMouseMove(event) {
 }
 
 /*
-setPiecePos -> set the position of a piece in the visualization and in the status board
+move -> move the piece with its consecuneces
 */
-function setPiecePos(piece, type, sx, sy, i, j, color) {
-
-    if (color == 'white') {
-
-        new TWEEN.Tween(white[whiteNaming[`${piece}${type}`]].position)
-            .to({ x: sx, y: sy }, 100)
-            .start();
-
-        chessboardStatus[i][j] = white[whiteNaming[`${piece}${type}`]];
-
-    } else {
-        new TWEEN.Tween(black[blackNaming[`${piece}${type}`]].position)
-            .to({ x: sx, y: sy }, 100)
-            .start();
-
-        chessboardStatus[i][j] = black[blackNaming[`${piece}${type}`]];
-    }
-}
-
 function move(srcSquare, targetSquare) {
     let src = [srcSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(srcSquare[1]) - 1];
     let dest = [targetSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(targetSquare[1]) - 1];
-
+    let movinDistance = 39;
+    let color = 'w';
     // console.log(src);
     // console.log(dest);
 
-    let movinDistance = 39;
+    // move to death position
     if (chessboardStatus[dest[0]][dest[1]] != null) {
         let pieceName = chessboardStatus[dest[0]][dest[1]].name;
         var expresion = /^Pawn.*/gi;
@@ -546,16 +554,55 @@ function move(srcSquare, targetSquare) {
         new TWEEN.Tween(chessboardStatus[src[0]][src[1]].position)
             .to({ x: (21 - dest[1] * 6), y: (-21 + dest[0] * 6) }, 700)
             .start();
-    } else {
+
+    } else { // black
+        color = 'b';
         new TWEEN.Tween(chessboardStatus[src[0]][src[1]].position)
             .to({ x: (-21 + dest[1] * 6), y: (21 - dest[0] * 6) }, 700)
             .start();
     }
 
+    // castling
+    var isKing = /^King.*/gi;
+    if (isKing.test(chessboardStatus[src[0]][src[1]].name)) {
+        // if castling
+        if (Math.abs(dest[0] - src[0]) == 2) {
+            if (dest[0] - src[0] > 0) { // right castling
+                (color == 'w' ? move('H1', 'F1') : move('H8', 'F8'));
+            } else { // left castling
+                (color == 'w' ? move('A1', 'D1') : move('A8', 'D8'));
+            }
+        }
+    }
+
     chessboardStatus[dest[0]][dest[1]] = chessboardStatus[src[0]][src[1]];
     chessboardStatus[src[0]][src[1]] = null;
-
 }
+
+/*
+setPiecePos -> set the position of a piece in the visualization and in the status board
+*/
+function setPiecePos(piece, type, sx, sy, i, j, color) {
+
+    if (color == 'white') {
+        white[whiteNaming[`${piece}${type}`]].visible = true;
+        new TWEEN.Tween(white[whiteNaming[`${piece}${type}`]].position)
+            .to({ x: sx, y: sy }, 100)
+            .start();
+
+        chessboardStatus[i][j] = white[whiteNaming[`${piece}${type}`]];
+
+    } else {
+        black[blackNaming[`${piece}${type}`]].visible = true;
+
+        new TWEEN.Tween(black[blackNaming[`${piece}${type}`]].position)
+            .to({ x: sx, y: sy }, 100)
+            .start();
+
+        chessboardStatus[i][j] = black[blackNaming[`${piece}${type}`]];
+    }
+}
+
 /*
 printFen -> print the chessboard with the given fen string
 @param {String} fen, Forsyth–Edwards Notation
@@ -573,6 +620,9 @@ function printFen(fen) {
 
     // reset chessboard status
     chessboardStatus = Array(8).fill(0).map(x => Array(8).fill(null));
+
+    white = saveWhite.slice();
+    black = saveBlack.slice();
 
     for (let piece of fen) {
 
@@ -593,8 +643,15 @@ function printFen(fen) {
         if (piece == piece.toLowerCase()) { // black
 
             if (piece == 'q' || piece == 'k') {
-                setPiecePos(piece, '', sxb, syb, i, j, 'black');
-                eval(`${piece}b++`);
+                if (piece == 'q' && qb > 1) {
+                    // let newName = black[blackNaming[`p${pb}`]].name;
+                    // black[blackNaming[`p${pb}`]].name = newName;
+                    setPiecePos('p', pb, sxb, syb, i, j, 'black');
+                    pb++;
+                } else {
+                    setPiecePos(piece, '', sxb, syb, i, j, 'black');
+                    eval(`${piece}b++`);
+                }
             } else {
                 setPiecePos(piece, eval(`${piece}b`), sxb, syb, i, j, 'black');
                 eval(`${piece}b++`);
@@ -604,8 +661,13 @@ function printFen(fen) {
             piece = piece.toLowerCase();
 
             if (piece == 'q' || piece == 'k') {
-                setPiecePos(piece, '', sxw, syw, i, j, 'white');
-                eval(`${piece}w++`);
+                if (piece == 'q' && qw > 1) {
+                    setPiecePos('p', pw, sxw, syw, i, j, 'white');
+                    pw++;
+                } else {
+                    setPiecePos(piece, '', sxw, syw, i, j, 'white');
+                    eval(`${piece}w++`);
+                }
             } else {
                 setPiecePos(piece, eval(`${piece}w`), sxw, syw, i, j, 'white');
                 eval(`${piece}w++`);
@@ -655,10 +717,12 @@ function setDeadPosition(piece, type, color) {
     if (piece == 'p') movinDistance = 33;
 
     if (color == 'w') {
+        white[whiteNaming[`${piece}${type}`]].visible = true;
         new TWEEN.Tween(white[whiteNaming[`${piece}${type}`]].position)
             .to({ x: movinDistance }, 500)
             .start();
     } else {
+        black[blackNaming[`${piece}${type}`]].visible = true;
         new TWEEN.Tween(black[blackNaming[`${piece}${type}`]].position)
             .to({ x: movinDistance }, 500)
             .start();
