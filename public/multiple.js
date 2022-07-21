@@ -2,21 +2,19 @@ import { TWEEN } from './tween.module.min.js';
 
 /* VARIABLE DEFINITION */
 var socket = io({ 'reconnect': false });
-let nScreens;
-let screen;
-let done = false;
+let nScreens, screen, done = false;
 
-let fullWidth = 1;
-let fullHeight = 1;
+let fullWidth = 1, fullHeight = 1;
 let startX = 0, startY = 0;
 let camera;
-let chessboard, satellite, earth, packageSat;
+let chessboard, satellite, earth, packageSat, starCluster2, starCluster, galaxy, simSpace;
 let sendRecieve = false;
 let white = [];
 let saveWhite = [];
 let black = [];
 let saveBlack = [];
 let starPos = [];
+let refreshEarth = 1;
 
 let whiteNaming = {
     'k': 0, // king
@@ -362,12 +360,6 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000101);
 
-    //Load background texture
-    // const bgloader = new THREE.TextureLoader();
-    // bgloader.load('./bgimages/nebula.jpg' , function(texture)
-    // {
-    //     scene.background = texture
-    // });
 
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 0, 10).normalize();
@@ -427,7 +419,7 @@ function init() {
                 scene.add(chessboard);
 
                 // all pieces are dead (starting configuration)
-                printFen('8/8/8/8/8/8/8/8');
+                setTimeout(() => printFen('8/8/8/8/8/8/8/8'), 1000);
 
             },
             // called while loading is progressing
@@ -444,11 +436,9 @@ function init() {
         loader.load(
             'models/sat/scene.gltf',
             function (gltf) {
-                console.log(gltf);
                 satellite = gltf.scene;
                 satellite.rotation.x = Math.PI / 1.5;
                 satellite.rotation.y = Math.PI / 3;
-                // satellite.scale.set(1,1,1);
 
                 satellite.position.x += 1700;
                 scene.add(satellite);
@@ -498,6 +488,81 @@ function init() {
             },
             function (error) {
                 console.log('An error happened packet');
+            }
+        );
+
+        // load space sim
+        loader.load(
+            'models/Space/scene.gltf',
+            function (gltf) {
+                simSpace = gltf.scene;
+                scene.add(simSpace);
+
+                simSpace.position.z = -8000;
+                simSpace.position.x = 3000;
+                // simSpace.scale.set(50, 50, 50);
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.log('An error happened simSpace');
+            }
+        );
+
+        // load star cluster model
+        loader.load(
+            'models/cluster/scene.gltf',
+            function (gltf) {
+
+                starCluster = gltf.scene;
+                starCluster2 = gltf.scene.clone();
+
+                starCluster.position.x += 500;
+                starCluster2.position.x -= 500;
+                starCluster.position.y -= 1000;
+                starCluster2.position.y -= 1000;
+
+                scene.add(starCluster);
+                scene.add(starCluster2);
+
+                // rotate the package
+                starCluster.rotation.y = Math.PI / 2;
+                starCluster2.rotation.y = Math.PI / 2;
+
+                starCluster.scale.set(50, 50, 50);
+                starCluster2.scale.set(50, 50, 50);
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.log('An error happened starCluster');
+            }
+        );
+
+        // galaxy
+        loader.load(
+            'models/bgModel/scene.gltf',
+            function (gltf) {
+
+                galaxy = gltf.scene;
+                // galaxy.position.y -= 1000;
+                scene.add(galaxy);
+
+                // rotate the package
+                galaxy.rotation.x = Math.PI / 1.5;
+                galaxy.position.x -= 750;
+                galaxy.position.y += 300;
+                galaxy.position.z -= 2000;
+
+                galaxy.scale.set(50, 50, 50);
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.log('An error happened galaxy');
             }
         );
 
@@ -729,6 +794,11 @@ function setDeadPosition(piece, type, color) {
     }
 }
 
+
+socket.on('refreshEarthScreen', (coord) => {
+    earth.rotation.y = coord.y;
+});
+
 /*
 animate -> animate the scene
 */
@@ -738,8 +808,24 @@ function animate() {
     TWEEN.update();
     animateStars();
 
+    if (galaxy) {
+        // galaxy.rotation.y += 0.001;
+        galaxy.rotation.z += Math.PI/0.5;
+    }
+
+    // if (simSpace) {
+    //     simSpace.rotation.y += 0.001;
+    // }
+
     if (earth) {
         earth.rotation.y -= 0.0003;
+        refreshEarth = (refreshEarth + 1) % 100;
+        if (refreshEarth == 0) {
+            socket.emit('refreshEarthServer', {
+                y: (earth.rotation.y -= 0.003)
+            });
+        }
+
     }
 
     // move the satellite around the earth (orbit) and send/recieve packets

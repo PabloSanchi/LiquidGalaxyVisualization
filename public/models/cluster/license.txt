@@ -1,0 +1,11 @@
+Model Information:
+* title:	119613 stars
+* source:	https://sketchfab.com/3d-models/119613-stars-bdac041f6513464faec46b6d6b5023b3
+* author:	Loïc Norgeot (https://sketchfab.com/norgeotloic)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "119613 stars" (https://sketchfab.com/3d-models/119613-stars-bdac041f6513464faec46b6d6b5023b3) by Loïc Norgeot (https://sketchfab.com/norgeotloic) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
