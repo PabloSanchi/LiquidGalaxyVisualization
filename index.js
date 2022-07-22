@@ -4,13 +4,50 @@ import { Server } from 'socket.io'
 import cors from 'cors'
 import path from 'path';
 import { moves } from './public/game/demo.js';
+import fs from 'fs';
+import https from 'https';
+
 
 var app = express();
+
+app.use(cors({
+    origin: "*",
+}));
+
+// app.use(function (req, res, next) {
+
+//     // Website you wish to allow to connect
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+
+//     // Request methods you wish to allow
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+//     // Request headers you wish to allow
+//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+//     // Set to true if you need the website to include cookies in the requests sent
+//     // to the API (e.g. in case you use sessions)
+//     res.setHeader('Access-Control-Allow-Credentials', true);
+
+//     // Pass to next layer of middleware
+//     next();
+// });
+
+
 var http = httpImport.createServer(app);
+
+// const server = https.createServer({
+//     key: fs.readFileSync(`${path.resolve()}/openssl/server.key`),
+//     cert: fs.readFileSync(`${path.resolve()}/openssl/server.crt`)
+// }, app);
+
+
 var io = new Server(http, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+        origin: '*',
+        methods: ['GET', 'POST'],
+        // allowedHeaders: ['Access-Control-Allow-Methods', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Headers'],
+        // credentials: true
     }
 });
 
@@ -41,21 +78,19 @@ console.log(`Running LQ Space Chess for Liquid Galaxy with ${nScreens} screens!`
 
 app.use(express.static(__dirname + filePath));
 
+app.get('/', (req, res) => {
+    res.send(`
+        <body style="background-color: black;">
+            <h1 style="font-family: Sans-serif; color: white;">
+                DASHBOARD
+            </h1>
+        </body>
+    `);
+});
 
 app.get('/:id', (req, res) => {
     const id = req.params.id
 
-    // console.log(Object.keys(screens));
-
-    // if(Object.keys(screens).includes(id.toString()))
-    //     res.send(`
-    //         <body style="background-color: black;">
-    //             <h1 style="font-family: Sans-serif; color: white;">
-    //                 Ya hay una pantalla numero ${id}
-    //             </h1>
-    //         </body>
-    //         `);
-    // else {
     if (id == "controller") {
         res.sendFile(__dirname + `${filePath}/${controllerFile}`);
     } else {
@@ -76,16 +111,6 @@ app.get('/:id', (req, res) => {
 });
 
 io.on('connect', socket => {
-
-    // console.log(Object.keys(screens));
-
-    // if(!(Object.keys(screens).includes(screenNumber.toString()))) {
-
-    //     if(socket.handshake.query.mobile != 'true')
-    //         screens[screenNumber] = socket;
-    // }else {
-    //     socket.disconnect()
-    // }
 
     console.log(`User connected with id ${socket.id}`);
 
@@ -138,7 +163,9 @@ io.on('connect', socket => {
                 height: 0,
                 child: superRes,
                 pos: pos
-            })
+            });
+
+            activeScreens = 0;
         }
     });
 
@@ -149,7 +176,11 @@ io.on('connect', socket => {
 
     socket.on('updatePos', (pos) => {
         io.to('screen').emit('updatePosScreen', pos);
-    })
+    });
+
+    socket.on('updateView', (data) => {
+        io.to('screen').emit('setView', data);
+    });
 
     /*
         newStatus - recieve the status and move from the client
@@ -199,24 +230,22 @@ io.on('connect', socket => {
     */
     socket.on('showDemo', () => {
         okDemo = true;
-
+        console.log('starting demo...');
         // reset keyboard
         io.to('screen').emit('updateFen', {
             status: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
             move: ''
         });
 
-        console.log(moves);
         let cont = 1;
 
         moves.every(async (move) => {
             if (!okDemo) return false;
-            console.log('move --> ');
             io.to('screen').emit('demoMove', {
                 main: move,
                 index: cont
             });
-            
+
             cont++;
             return true
         });
@@ -237,6 +266,11 @@ io.on('connect', socket => {
         io.to('screen').emit('goChess');
     });
 
+
+    socket.on('refreshEarthServer', (coord) => {
+        io.to('screen').emit('refreshEarthScreen', coord);
+    });
+
 });
 
 
@@ -248,7 +282,6 @@ function sleep(milliseconds) {
     } while (currentDate - date < milliseconds);
 }
 
-
 http.listen(port, () => {
-    console.log(`Listening: localhost:${port}`);
+    console.log(`Listening:\nhttp://localhost:${port}\nhttps://localhost:${port}`);
 });

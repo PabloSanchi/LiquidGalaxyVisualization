@@ -360,7 +360,6 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000101);
 
-
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 0, 10).normalize();
     scene.add(light);
