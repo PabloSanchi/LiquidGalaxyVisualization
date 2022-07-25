@@ -73,7 +73,6 @@ socket.on('update', (screenData) => {
     });
 });
 
-
 /*
 Start visulization when the server gives the signal to do so
     - Retrieve: - super-resuloution (the total width of the screens)
@@ -187,21 +186,22 @@ const onDocumentKeyDown = (event) => {
         camera.position.x -= 50;
     } else if (keyCode == 37) { // <-
 
-        new TWEEN.Tween(chessboard.rotation)
-            .to({ y: chessboard.rotation._y + Math.PI / 2 }, 1000)
-            .start();
+        chessboard.rotation.x += 0.1;
+        // new TWEEN.Tween(chessboard.rotation)
+        //     .to({ y: chessboard.rotation._y + Math.PI / 2 }, 1000)
+        //     .start();
 
     } else if (keyCode == 39) { // ->
-
-        new TWEEN.Tween(chessboard.rotation)
-            .to({ y: chessboard.rotation._y - Math.PI / 2 }, 1000)
-            .start();
+        
+        chessboard.rotation.x -= 0.1;
+        // new TWEEN.Tween(chessboard.rotation)
+        //     .to({ y: chessboard.rotation._y - Math.PI / 2 }, 1000)
+        //     .start();
 
     } else if (keyCode == 90) {
         move('E1', 'C1');
     } else if (keyCode == 88) {
-        // printFen('r3k2r/8/8/8/8/8/8/R3K2R');
-        printFen('8/8/8/8/8/8/8/8');
+        printFen('r3k2r/8/8/8/8/8/8/R3K2R');
 
         new TWEEN.Tween(chessboard.rotation)
             .to({ y: 0 }, 1000)
@@ -227,10 +227,18 @@ socket.on('setView', (data) => {
         new TWEEN.Tween(chessboard.rotation)
             .to({ y: 0 - Math.PI / 2 }, 1000)
             .start();
-    } else {
+    } else if (data.where == 'center'){
         new TWEEN.Tween(chessboard.rotation)
             .to({ y: 0 }, 1000)
             .start();
+    } else {
+        new TWEEN.Tween(chessboard.rotation)
+        .to({ y: chessboard.rotation._y + data.where }, 200)
+        .start();
+
+        new TWEEN.Tween(chessboard.rotation)
+        .to({ x: chessboard.rotation._x + data.whereX }, 200)
+        .start();
     }
 });
 

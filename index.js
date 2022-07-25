@@ -7,32 +7,17 @@ import { moves } from './public/game/demo.js';
 import fs from 'fs';
 import https from 'https';
 
-
 var app = express();
 
-app.use(cors({
-    origin: "*",
-}));
+// app.use(cors({
+//     origin: "*",
+// }));
 
 // app.use(function (req, res, next) {
-
-//     // Website you wish to allow to connect
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-
-//     // Request methods you wish to allow
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-//     // Request headers you wish to allow
-//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-//     // Set to true if you need the website to include cookies in the requests sent
-//     // to the API (e.g. in case you use sessions)
-//     res.setHeader('Access-Control-Allow-Credentials', true);
-
-//     // Pass to next layer of middleware
+//     res.header("Access-Control-Allow-Origin", "*");
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 //     next();
 // });
-
 
 var http = httpImport.createServer(app);
 
@@ -41,19 +26,40 @@ var http = httpImport.createServer(app);
 //     cert: fs.readFileSync(`${path.resolve()}/openssl/server.crt`)
 // }, app);
 
-
 var io = new Server(http, {
     cors: {
         origin: '*',
         methods: ['GET', 'POST'],
-        // allowedHeaders: ['Access-Control-Allow-Methods', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Headers'],
+        // allowedHeaders: ['my-custom-header'],
         // credentials: true
+    },
+    handlePreflightRequest: (req, res) => {
+        const headers = {
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Origin': req.headers.origin,
+            'Access-Control-Allow-Credentials': true
+        };
+        res.writeHead(200, headers);
+        res.end();
     }
 });
 
+// io.use(cors({
+//     origin: '*',
+// }));
+
+// io.use(function (req, res, next) {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+//     res.setHeader('Access-Control-Allow-Credentials', true);
+//     next();
+// }); 
+
+
 const __dirname = path.resolve();
 
-const port = 8120;
+const port = 8080; // 8120;
 
 // Setup files to be sent on connection
 const filePath = "/public" // Do not add '/' at the end
@@ -132,12 +138,14 @@ io.on('connect', socket => {
         console.log('user left');
     });
 
+    // conf every screen
     if (!(socket.handshake.query.mobile == 'true') && !(socket.handshake.query.controller == 'true')) {
         io.to(socket.id).emit('update', {
             id: screenNumber
         });
     }
 
+    // get window size data of each screen
     socket.on('windowSize', (data) => {
         superRes[data.id] = data.width;
         activeScreens++;
@@ -252,35 +260,23 @@ io.on('connect', socket => {
 
     });
 
-    /*
-        showEarth -> tell the screens to show the earth
-    */
+    
+    // showEarth -> tell the screens to show the earth
     socket.on('showEarth', () => {
         io.to('screen').emit('goEarth');
     });
 
-    /*
-        showChess ->  tell the screens to show the chess
-    */
+    // showChess ->  tell the screens to show the chess
     socket.on('showChess', () => {
         io.to('screen').emit('goChess');
     });
 
-
+    // refreshEarthServer -> syncronize the earth position between the screens
     socket.on('refreshEarthServer', (coord) => {
         io.to('screen').emit('refreshEarthScreen', coord);
     });
 
 });
-
-
-function sleep(milliseconds) {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-        currentDate = Date.now();
-    } while (currentDate - date < milliseconds);
-}
 
 http.listen(port, () => {
     console.log(`Listening:\nhttp://localhost:${port}\nhttps://localhost:${port}`);
