@@ -42,6 +42,7 @@ var superRes = {};
 var screenNumber = 1;
 var activeScreens = 0;
 var myArgs = process.argv.slice(2); // get nScreens input 
+var url = process.argv.slice(3) // get url
 var nScreens = Number(myArgs[0]);
 var okDemo = false;
 
@@ -58,7 +59,7 @@ app.get('/', (req, res) => {
     res.send(`
         <body style="background-color: black;">
             <h1 style="font-family: Sans-serif; color: white;">
-                LQ SPACE CHESS
+                URL: ${url}
             </h1>
         </body>
     `);
@@ -248,5 +249,5 @@ io.on('connect', socket => {
 });
 
 http.listen(port, () => {
-    console.log(`Listening:\nhttp://localhost:${port}`);
+    console.log(`Listening:\nhttp://localhost:${port}\n${url}`);
 });

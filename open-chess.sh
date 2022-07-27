@@ -1,10 +1,11 @@
 #!/bin/bash
 . ${HOME}/etc/shell.conf
 
-gnome-terminal -- npm start $1
+# gnome-terminal -- npm start $1
+# $1 = screens
+# $2 = url
+gnome-terminal -- npm start $1 $2
 
-# experimental (should work)
-# gnome-terminal -- ssh -R 80:localhost:8120 nokey@localhost.run
 
 sleep 5
 
