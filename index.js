@@ -8,67 +8,36 @@ import fs from 'fs';
 import https from 'https';
 
 var app = express();
-
-// app.use(cors({
-//     origin: "*",
-// }));
-
-// app.use(function (req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
-
 var http = httpImport.createServer(app);
-
-// const server = https.createServer({
-//     key: fs.readFileSync(`${path.resolve()}/openssl/server.key`),
-//     cert: fs.readFileSync(`${path.resolve()}/openssl/server.crt`)
-// }, app);
 
 var io = new Server(http, {
     cors: {
         origin: '*',
         methods: ['GET', 'POST'],
-        // allowedHeaders: ['my-custom-header'],
+        allowedHeaders: ['ngrok-skip-browser-warning'],
         // credentials: true
     },
     handlePreflightRequest: (req, res) => {
         const headers = {
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'Access-Control-Allow-Origin': req.headers.origin,
-            'Access-Control-Allow-Credentials': true
+            'Access-Control-Allow-Credentials': true,
+            'ngrok-skip-browser-warning': true
         };
         res.writeHead(200, headers);
         res.end();
     }
 });
 
-// io.use(cors({
-//     origin: '*',
-// }));
-
-// io.use(function (req, res, next) {
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-//     res.setHeader('Access-Control-Allow-Credentials', true);
-//     next();
-// }); 
-
-
+// essentials
 const __dirname = path.resolve();
-
-const port = 8080; // 8120;
+const port = 8120;
 
 // Setup files to be sent on connection
-const filePath = "/public" // Do not add '/' at the end
-const vFile = "index.html"
-const pruebas = "multiple.html";
+const filePath = "/public", vFile = "index.html", pruebas = "multiple.html";
 const controllerFile = "controller/index.html"
 
 // varibles
-var screens = {};
 var superRes = {};
 var screenNumber = 1;
 var activeScreens = 0;
@@ -82,13 +51,14 @@ if (myArgs.length == 0 || isNaN(nScreens)) {
 }
 console.log(`Running LQ Space Chess for Liquid Galaxy with ${nScreens} screens!`);
 
+
 app.use(express.static(__dirname + filePath));
 
 app.get('/', (req, res) => {
     res.send(`
         <body style="background-color: black;">
             <h1 style="font-family: Sans-serif; color: white;">
-                DASHBOARD
+                LQ SPACE CHESS
             </h1>
         </body>
     `);
@@ -113,7 +83,6 @@ app.get('/:id', (req, res) => {
             `);
         }
     }
-    // }
 });
 
 io.on('connect', socket => {
@@ -279,5 +248,5 @@ io.on('connect', socket => {
 });
 
 http.listen(port, () => {
-    console.log(`Listening:\nhttp://localhost:${port}\nhttps://localhost:${port}`);
+    console.log(`Listening:\nhttp://localhost:${port}`);
 });

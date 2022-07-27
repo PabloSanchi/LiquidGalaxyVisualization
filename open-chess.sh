@@ -3,6 +3,9 @@
 
 gnome-terminal -- npm start $1
 
+# experimental (should work)
+# gnome-terminal -- ssh -R 80:localhost:8120 nokey@localhost.run
+
 sleep 5
 
 port=8120;
