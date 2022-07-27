@@ -54,7 +54,7 @@ After the game is installed make sure to reboot your machine! Once it is done re
 
 After the packages are installed, then run the following command:
 ```bash
-bash open-chess.sh NUMSCREEN
+python3 open.py NUMSCREEN
 ```
 <!-- ```bash
 npm start NUMSCREEN
@@ -75,7 +75,10 @@ bash open-chess.sh
 If you are experiencing some errors while executing the `open-chess.sh` script, kill it and re-start it.
 - Stop the server
 - `bash kill-chess.sh`
-- Restart the server `bash open-chess.sh NUMSCREEN`
+- `python3 open.py NUMSCREEN`
+<!-- - Stop the server
+- `bash kill-chess.sh`
+- Restart the server `bash open-chess.sh NUMSCREEN` -->
 
 <!-- If you are experiencing some errors while executing the `open-chess.sh` script, kill it and re-start it.
 - Stop the server
