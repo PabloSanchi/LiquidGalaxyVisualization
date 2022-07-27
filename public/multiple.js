@@ -184,29 +184,6 @@ const onDocumentKeyDown = (event) => {
         camera.position.x += 50;
     } else if (keyCode == 68) {
         camera.position.x -= 50;
-    } else if (keyCode == 37) { // <-
-
-        chessboard.rotation.x += 0.1;
-        // new TWEEN.Tween(chessboard.rotation)
-        //     .to({ y: chessboard.rotation._y + Math.PI / 2 }, 1000)
-        //     .start();
-
-    } else if (keyCode == 39) { // ->
-        
-        chessboard.rotation.x -= 0.1;
-        // new TWEEN.Tween(chessboard.rotation)
-        //     .to({ y: chessboard.rotation._y - Math.PI / 2 }, 1000)
-        //     .start();
-
-    } else if (keyCode == 90) {
-        move('E1', 'C1');
-    } else if (keyCode == 88) {
-        printFen('r3k2r/8/8/8/8/8/8/R3K2R');
-
-        new TWEEN.Tween(chessboard.rotation)
-            .to({ y: 0 }, 1000)
-            .start();
-
     } else { return; }
 
     socket.emit('updatePos', {
