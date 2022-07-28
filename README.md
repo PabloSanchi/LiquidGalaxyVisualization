@@ -22,7 +22,7 @@ The satellite may take a while to make its move, so you may not see it in hours,
 ```bash
 node -v
 ```
--  The output should look someting like `v16.*.*`, if this is not the case it should still work, if not, try upgrading to the version 16.
+-  The output should look someting like `v16.*.*`, at least you need version `v14.*.*`, if this is not the case it may not work, if not, try upgrading to the version 16.
 
 3. Install pm2 on master machine. Run command:
 ```bash
