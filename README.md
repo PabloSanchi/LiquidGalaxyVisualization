@@ -72,7 +72,7 @@ bash open-chess.sh
 <!-- If you experience any problems, check the installation logs for any possible errors in the logs folder, there will be a file with the date of installation as it's name. -->
 
 
-If you are experiencing some errors while executing the `open-chess.sh` script, kill it and re-start it.
+If you are experiencing some errors while executing the `open.py` script, kill it and re-start it.
 - Stop the server
 - `bash kill-chess.sh`
 - `python3 open.py NUMSCREEN`
@@ -80,11 +80,6 @@ If you are experiencing some errors while executing the `open-chess.sh` script, 
 - `bash kill-chess.sh`
 - Restart the server `bash open-chess.sh NUMSCREEN` -->
 
-<!-- If you are experiencing some errors while executing the `open-chess.sh` script, kill it and re-start it.
-- Stop the server
-- `bash kill-chess.sh`
-- Restart the server `npm start + additional config`
-- `bash open-chess.sh` -->
 
 ## Keyboard Controls (test only)
 - ZOOM: **w** & **s** keyboard keys
@@ -106,7 +101,6 @@ http://192.168.0.11:8120/controller
 
 <p style="font-size: 15px;"> 
 ⚠️ Warning <br/>
-- DEMO is only available in the web controller<br/>
 - DEMO cannot be stopped <br/>
 </p>
 
