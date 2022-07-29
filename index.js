@@ -261,7 +261,7 @@ io.on('connect', socket => {
 launch -> launch tunnel between the localhost and internet
     and save the url in the database if possible
 */
-async function launch() {
+function launch() {
     // Create a child process
     child = spawn('ssh', ['-o', 'TCPKeepAlive=yes', '-R', '80:localhost:8120', 'nokey@localhost.run']);
 
