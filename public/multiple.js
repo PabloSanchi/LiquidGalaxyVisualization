@@ -345,6 +345,10 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000101);
 
+    const BGLoader = new THREE.TextureLoader();
+    scene.background = BGLoader.load('bgImages/bground.jpg');
+
+
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 0, 10).normalize();
     scene.add(light);
@@ -865,15 +869,15 @@ addSpehere -> add spheres (starts) to the scene
 function addSphere() {
 
     // The loop will move from z position of -1000 to z position 1000, adding a random particle at each position. 
-    for (var z = -2000; z < 2000; z += 40) {
+    for (var z = -4000; z < 4000; z += 40) {
 
         // Make a sphere (exactly the same as before). 
         var geometry = new THREE.SphereGeometry(0.5, 32, 32)
         var material = new THREE.MeshBasicMaterial({ color: 0xffffff });
         var sphere = new THREE.Mesh(geometry, material)
 
-        sphere.position.x = starPos[z + 2000][0];
-        sphere.position.y = starPos[z + 2000][1];
+        sphere.position.x = starPos[z + 4000][0];
+        sphere.position.y = starPos[z + 4000][1];
 
         sphere.position.z = z;
         sphere.scale.x = sphere.scale.y = 2;
@@ -891,7 +895,7 @@ function animateStars() {
     for (var i = 0; i < stars.length; i++) {
         star = stars[i];
         // speed is proportional to the z position of the star
-        star.position.z += i / 30;
+        star.position.z += i / 50;
         // respawn the star when its position is close to the camera
         if (star.position.z > 1500) star.position.z -= 2500;
     }
