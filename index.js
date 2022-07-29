@@ -1,13 +1,21 @@
 import express from 'express';
-import httpImport from 'http'
-import { Server } from 'socket.io'
-import cors from 'cors'
+import httpImport from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
 import path from 'path';
 import { moves } from './public/game/demo.js';
-import fs from 'fs';
-import https from 'https';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, updateDoc, setDoc, doc } from 'firebase/firestore/lite';
+import dotenv from 'dotenv';
+import ip from "ip";
+import fetch from 'node-fetch';
+// var spawn = require('child_process').spawn;
+import { spawn } from 'child_process';
+
+dotenv.config()
 
 var app = express();
+app.use(cors());
 var http = httpImport.createServer(app);
 
 var io = new Server(http, {
@@ -30,6 +38,8 @@ var io = new Server(http, {
 });
 
 // essentials
+var child, url = '';
+var hasFirebase = true, fireApp, db;
 const __dirname = path.resolve();
 const port = 8120;
 
@@ -42,39 +52,37 @@ var superRes = {};
 var screenNumber = 1;
 var activeScreens = 0;
 var myArgs = process.argv.slice(2); // get nScreens input 
-var url = process.argv.slice(3) // get url
 var nScreens = Number(myArgs[0]);
 var okDemo = false;
 
+// start config
 if (myArgs.length == 0 || isNaN(nScreens)) {
-    console.log("Number of screens invalid or not informed, default number is 3.");
+    console.log("Number of screens invalid or not informed, default number is 5.");
     nScreens = 5;
 }
 console.log(`Running LQ Space Chess for Liquid Galaxy with ${nScreens} screens!`);
 
-
+// establish default dir
 app.use(express.static(__dirname + filePath));
 
+
+// show current tunnel url (for users)
 app.get('/', (req, res) => {
-    res.send(`
-        <body style="background-color: black;">
-            <h1 style="font-family: Sans-serif; color: white;">
-                URL: ${url}
-            </h1>
-        </body>
-    `);
+    res.json({ url: url });
 });
 
 app.get('/:id', (req, res) => {
+    // get inurl parameter
     const id = req.params.id
 
+    // if parameter == controller
     if (id == "controller") {
         res.sendFile(__dirname + `${filePath}/${controllerFile}`);
-    } else {
-        if (id <= nScreens) {
+    } else { // if it is a screen
+        if (id <= nScreens) { // if the number is valid
             screenNumber = id
             res.sendFile(__dirname + `${filePath}/${pruebas}`);
-        } else {
+        } else { // if the number is invalid, send notify screen
             res.send(`
             <body style="background-color: black;">
                 <h1 style="font-family: Sans-serif; color: white;">
@@ -90,7 +98,7 @@ io.on('connect', socket => {
 
     console.log(`User connected with id ${socket.id}`);
 
-    // join the room taking care of the type (mobile or screen)
+    // join the room taking care of the type (mobile, screen or controller)
     if (socket.handshake.query.mobile == 'true') {
         console.log('MOBILE');
         socket.join('mobile');
@@ -108,7 +116,7 @@ io.on('connect', socket => {
         console.log('user left');
     });
 
-    // conf every screen
+    // send screen id to the new screen (config)
     if (!(socket.handshake.query.mobile == 'true') && !(socket.handshake.query.controller == 'true')) {
         io.to(socket.id).emit('update', {
             id: screenNumber
@@ -120,6 +128,7 @@ io.on('connect', socket => {
         superRes[data.id] = data.width;
         activeScreens++;
 
+        // if all screens are connected
         if (activeScreens == nScreens) {
             let r = 0;
             let pos = []
@@ -132,7 +141,7 @@ io.on('connect', socket => {
             console.log('sending start signal');
 
             // stars coordinates (same for all screens)
-            for (let index = 0; index < 4000; index++) {
+            for (let index = 0; index < 8000; index++) {
                 pos[index] = [Math.random() * 2000 - 500, Math.random() * 2000 - 500]
             }
 
@@ -230,7 +239,6 @@ io.on('connect', socket => {
 
     });
 
-    
     // showEarth -> tell the screens to show the earth
     socket.on('showEarth', () => {
         io.to('screen').emit('goEarth');
@@ -248,6 +256,75 @@ io.on('connect', socket => {
 
 });
 
+
+/*
+launch -> launch tunnel between the localhost and internet
+    and save the url in the database if possible
+*/
+async function launch() {
+    // Create a child process
+    child = spawn('ssh', ['-o', 'TCPKeepAlive=yes', '-R', '80:localhost:8120', 'nokey@localhost.run']);
+
+    // Listen for output
+    child.stdout.on('data',
+        function (data) {
+            // get the provided url
+            var regexp = /.*tunneled with tls termination, https:\/\/.*/gi;
+            var matches_array = data.toString().match(regexp);
+            var str = matches_array.join('');
+            url = str.split(', ')[1];
+            console.log('launch url: ' + url);
+            
+            if(hasFirebase) {
+                setDoc(doc(db, "rig", ip.address()), {
+                    ip: url,
+                }).then(() => {
+                    console.log('ip added: ', url);
+                }).catch(() => {
+                    console.log('error');
+                });
+            }
+        });
+
+    child.on('close', function (code) {
+        console.log('child process killed');
+    });
+}
+
+try {
+    const firebaseConfig = {
+        apiKey: process.env.APIKEY,
+        authDomain: process.env.AUTHDOMAIN,
+        projectId: process.env.PROJECTID,
+        storageBucket: process.env.STORAGEBUCKET,
+        messagingSenderId: process.env.MESSAGESENDERID,
+        appId: process.env.APPID,
+    };
+    fireApp = initializeApp(firebaseConfig);
+    db = getFirestore();
+
+    // launch();
+} catch (err) {
+    console.log('Automatic IP connection deactivated');
+    hasFirebase = false;
+}
+
+// keep alive url by fetching it every 10 seconds
+setInterval(() => {
+    fetch(url, {
+        method: 'GET',
+    })
+    .then(res => res.json())
+    .then(json => {
+        console.log([new Date().getHours(), new Date().getMinutes(), new Date().getSeconds()].join(':'), json);
+    })
+    .catch(err => {
+        console.log('no ssh port anymore, restarting...');
+        if(child) child.kill();
+        launch();
+    });
+}, 10000);
+
 http.listen(port, () => {
-    console.log(`Listening:\nhttp://localhost:${port}\n${url}`);
+    console.log(`Listening:\nhttp://localhost:${port}`);
 });
