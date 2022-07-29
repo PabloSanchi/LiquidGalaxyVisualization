@@ -15,8 +15,8 @@ The satellite may take a while to make its move, so you may not see it in hours,
 </p>
 
 
+## <a name="req" ></a>✏️ Requirements
 
-## ✏️ Running Requirements
 1. Make sure the Liquid Galaxy core is installed. Check out the git hub [repository](https://github.com/LiquidGalaxyLAB/liquid-galaxy)
 2. Make sure **Node.js version 16** is installed on the master machine by running:
 ```bash
@@ -32,53 +32,57 @@ sudo npm i -g pm2
 
 
 ## 🖥️ Installation & Launch
-Open a new terminal and go to the '~' (default) directory with the command:
+
+### Install Space Chess
+- Open a new terminal and go to the '~' (default) directory with the command:
 ```bash
 cd ~
 ```
 
-Now, clone the repository **in the current directory (default directory on terminal)** of the **master** machine with the command:
+- clone the repository **in the current directory (default directory on terminal)** of the **master** machine with the command:
 ```bash
 git clone https://github.com/PabloSanchi/LiquidGalaxyVisualization
 ```
 
-Go to the new folder (github repository) and execute the installation script.
-Use the following commands:
+- Go to the new folder (github repository) and execute the installation script.
+Use the following commands **(you will have to restart your computer after the installation is done):**
 ```bash
 cd LiquidGalaxyVisualization
 bash install.sh
 ```
 
-<!-- 
-After the game is installed make sure to reboot your machine! Once it is done rebooting, the game can be opened by executing the open script in the *LiquidGalaxyVisualization* directory with: -->
+### Launch Space Chess
 
-After the packages are installed, then run the following command:
+You must be in the repository directory, 
+Your terminal must look something like this: ` LiquidGalaxyVisualization $`
+
+- Execute the launch script, by doing the following:
 ```bash
-python3 open.py NUMSCREEN
+bash open-chess.sh NUMSCREEN
 ```
-<!-- ```bash
-npm start NUMSCREEN
-bash open-chess.sh
-``` -->
 
-***NUMSCREEN is the number of screens that you want to use, by deafult is 5, so make sure to set it properly according to your rig setup.***
+***WARNING ⚠️:
+NUMSCREEN is the number of screens that you want to use.***
 
-
-<p style="font-size: 15px;"> 
-⚠️ Warning <br/>
- - IT MAY LAST A BIT TO LOAD THE CHESSBOARD <br/>
-</p>
-
-<!-- If you experience any problems, check the installation logs for any possible errors in the logs folder, there will be a file with the date of installation as it's name. -->
+***The default deafult value is 5. Make sure to set it properly according to your rig setup.***
 
 
-If you are experiencing some errors while executing the `open.py` script, kill it and re-start it.
+## 🆘 Troubleshooting
+
+[1.0] Installation errors<br/>
+[2.0] Launch errors
+
+### Solution
+[1.0]
+If something went wrong during the installation, the main cause is that you do not satisfy the requirements. Please make sure to check the [requirement area](#req)
+
+[2.0]
+If you are experiencing some errors while executing the `open-ches.sh` script, kill it and re-start it.
 - Stop the server
 - `bash kill-chess.sh`
-- `python3 open.py NUMSCREEN`
-<!-- - Stop the server
-- `bash kill-chess.sh`
-- Restart the server `bash open-chess.sh NUMSCREEN` -->
+- `ssh open-ches.sh NUMSCREEN`
+
+
 
 
 ## Keyboard Controls (test only)
