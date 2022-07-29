@@ -49,7 +49,6 @@ cd ~/LiquidGalaxyVisualization
 ```bash
 bash open-chess.sh NUMSCREEN
 ```
-***WARNING ⚠️:
-NUMSCREEN is the number of screens that you want to use.***
+***NUMSCREEN is the number of screens that you want to use.***
 
 ***The default deafult value is 5. Make sure to set it properly according to your rig setup.***
