@@ -1,11 +1,10 @@
 #!/bin/bash
 . ${HOME}/etc/shell.conf
 
-# gnome-terminal -- npm start $1
+gnome-terminal -- npm start $1
 # $1 = screens
 # $2 = url
-gnome-terminal -- npm start $1 $2
-
+# gnome-terminal -- npm start $1 $2
 
 sleep 5
 
