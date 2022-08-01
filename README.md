@@ -51,12 +51,14 @@ cd LiquidGalaxyVisualization
 bash install.sh
 ```
 
-- Now execute the following command
-```bash
-ssh -o TCPKeepAlive=yes -R 80:localhost:8120 nokey@localhost.run
-```
+- Now execute the following command:
 
-*You must enter `yes` when asked `Are you sure you want to continue connecting (yes/no)?`*
+  - ```bash
+    ssh -o TCPKeepAlive=yes -R 80:localhost:8120 nokey@localhost.run
+    ```
+  - You must enter `yes` when asked `Are you sure you want to continue connecting (yes/no)?`
+
+
 
 - INSTALLATION FINISHED!
 
