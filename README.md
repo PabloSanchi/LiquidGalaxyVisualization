@@ -58,7 +58,7 @@ bash install.sh
     ```
   - You must enter `yes` when asked `Are you sure you want to continue connecting (yes/no)?`
 
-
+- <a name="env" ></a> Ask the owners for the `.env` file, otherwise the connection troughout the IP wont work.
 
 - INSTALLATION FINISHED!
 
@@ -82,6 +82,7 @@ NUMSCREEN is the number of screens that you want to use.***
 
 [1.0] Installation errors<br/>
 [2.0] Launch errors
+[3.0] Connecting issues
 
 ### Solution
 [1.0]
@@ -96,7 +97,8 @@ If you are experiencing some errors while executing the `open-ches.sh` script, k
 - `ssh open-ches.sh NUMSCREEN`
   - You must be in the LiquidGalaxyVisualization folder
 
-
+[3.0]
+If you cannot connect using the rig modal in the web, [renember to ask the owners the `.env` file](#env)
 
 
 ## Keyboard Controls (test only)
