@@ -81,7 +81,7 @@ NUMSCREEN is the number of screens that you want to use.***
 ## 🆘 Troubleshooting
 
 [1.0] Installation errors<br/>
-[2.0] Launch errors
+[2.0] Launch errors<br/>
 [3.0] Connecting issues
 
 ### Solution
