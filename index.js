@@ -254,6 +254,47 @@ io.on('connect', socket => {
         io.to('screen').emit('refreshEarthScreen', coord);
     });
 
+    // poweroff lg rig
+    socket.on('poweroff', () => {
+        spawn('lg-poweroff');
+    })
+
+    // reboot lg rig
+    socket.on('reboot', () => {
+        spawn('lg-reboot');
+    })
+
+    // hide logos from screens
+    socket.on('hideLogos', () => {
+        console.log('hiding/showing logos');
+        io.to('screen').emit('viewlogos');
+    });
+
+    // config and start demo
+    socket.on('demoContent', (data) => {
+        console.log('starting demo...');
+        io.to('screen').emit('startDemo', data);
+    });
+
+    // pause/play demo
+    socket.on('playstop', () => {
+        io.to('screen').emit('playpause');
+    });
+
+    // set demo speed
+    socket.on('demoSpeed', (data) => {
+        io.to('screen').emit('xVel', data);
+    });
+
+    // forward demo
+    socket.on('demoForward', () => {
+        io.to('screen').emit('forward');
+    });
+
+    // backward demo
+    socket.on('demoBackward', () => {
+        io.to('screen').emit('backward');
+    });
 });
 
 
@@ -285,6 +326,8 @@ function launch() {
                 });
             }
         });
+
+    // child.stderr.on('data', (data) => {console.log(data.toString())});
 
     child.on('close', function (code) {
         console.log('child process killed');

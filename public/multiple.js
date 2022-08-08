@@ -45,6 +45,24 @@ let initialPiecePos = {};
 /* END VARIABLE DEFINITION */
 
 
+/* LOGO HIDE & UNHIDE */
+// query selector get logo and hidebtn
+const logo = document.querySelector('#logo');
+const hidebtn = document.querySelector('#hidebtn');
+hidebtn.style.display = 'none';
+
+// on click hide or unhide logo with display property
+hidebtn.addEventListener('click', () => {
+    if (logo.style.display === 'none') {
+        logo.style.display = 'block';
+        hidebtn.innerHTML = 'Hide';
+    } else {
+        logo.style.display = 'none';
+        hidebtn.innerHTML = 'Show';
+    }
+});
+
+
 /* SOCKET INFORMATION EXCHANGE */
 socket.on('updateScreen', (coords) => {
     if (screen == 1) return; // do not update the master screen
@@ -61,6 +79,7 @@ socket.on('update', (screenData) => {
     if (done) return;
     document.title = screenData.id;
     screen = screenData.id;
+    
     done = true;
 
     console.log('screen data: ' + screenData.id);
@@ -119,6 +138,18 @@ socket.on('start', (superRes) => {
     console.log('superRes: (' + fullWidth + ',' + fullHeight + ')');
     console.log('StartX: ' + startX + ' StartY: ' + startY);
 
+    // show logos
+    // if even compare screen with max - 1
+    // else compare screen with max
+    var maxNum = Math.max(...keys.map(Number).filter(e => e % 2 != 0));
+    console.log('max is: ' + maxNum);
+    console.log('screen is: ' + screen);
+    if(screen == maxNum) {
+        hidebtn.style.display = 'block';
+        logo.style.display = 'block';
+        hidebtn.innerHTML = 'Hide';    
+    }
+
     // start animation
     init();
     addSphere();
@@ -129,9 +160,12 @@ socket.on('start', (superRes) => {
 */
 socket.on('updateFen', (fen) => {
     if (fen.move == '') printFen(fen.status);
-    else {
+    else if( fen.status != '') {
         console.log('fen: ' + fen.status);
         printFen(fen.status);
+        console.log('move: ' + fen.move);
+        move(fen.move.split(' ')[0], fen.move.split(' ')[1]);
+    } else {
         move(fen.move.split(' ')[0], fen.move.split(' ')[1]);
     }
 });
@@ -166,6 +200,19 @@ socket.on('demoMove', (data) => {
     setTimeout(() => { move(data.main[0], data.main[1]) }, data.index * 1000);
 });
 
+/*
+viewlogos -> show or hide the logos
+*/
+socket.on('viewlogos', () => {
+    if (logo.style.display === 'none') {
+        logo.style.display = 'block';
+        hidebtn.innerHTML = 'Hide';
+    } else {
+        logo.style.display = 'none';
+        hidebtn.innerHTML = 'Show';
+    }
+});
+
 
 window.onload = function () {
     document.addEventListener('keydown', onDocumentKeyDown, false);
@@ -197,25 +244,28 @@ setView -> set the camera view (white perspective, black perspective or global v
 */
 socket.on('setView', (data) => {
     if (data.where == 'white') {
+        showChess(1000);
         new TWEEN.Tween(chessboard.rotation)
             .to({ y: 0 + Math.PI / 2 }, 1000)
             .start();
     } else if (data.where == 'black') {
+        showChess(1000);
         new TWEEN.Tween(chessboard.rotation)
             .to({ y: 0 - Math.PI / 2 }, 1000)
             .start();
-    } else if (data.where == 'center'){
+    } else if (data.where == 'center') {
+        goChess(1000);
         new TWEEN.Tween(chessboard.rotation)
-            .to({ y: 0 }, 1000)
+            .to({ x: Math.PI / 3.5, y: 0, z: 0 }, 1000)
             .start();
     } else {
         new TWEEN.Tween(chessboard.rotation)
-        .to({ y: chessboard.rotation._y + data.where }, 200)
-        .start();
+            .to({ y: chessboard.rotation._y + data.where }, 200)
+            .start();
 
         new TWEEN.Tween(chessboard.rotation)
-        .to({ x: chessboard.rotation._x + data.whereX }, 200)
-        .start();
+            .to({ x: chessboard.rotation._x + data.whereX }, 200)
+            .start();
     }
 });
 
@@ -242,6 +292,10 @@ socket.on('goEarth', () => {
 goChess -> move the camera to the chess view
 */
 socket.on('goChess', () => {
+    goChess();
+});
+
+function goChess() {
     var position = new THREE.Vector3().copy(camera.position);
 
     new TWEEN.Tween(position)
@@ -255,7 +309,23 @@ socket.on('goChess', () => {
             camera.position.z = position.z;
         })
         .start();
-});
+}
+
+function showChess(time = 2000) {
+    var position = new THREE.Vector3().copy(camera.position);
+
+    new TWEEN.Tween(position)
+        .to({ x: 0 }, time)
+        .easing(TWEEN.Easing.Back.InOut)
+        .onUpdate(function () {
+            camera.position.copy(position);
+        })
+        .onComplete(function () {
+            camera.position.x = position.x;
+            camera.position.z = position.z;
+        })
+        .start();
+}
 
 /*
 controllerUpdate -> move the camera
@@ -279,7 +349,7 @@ let stars = [];
 /* END VARIABLES FOR THREE JS */
 
 
-/*
+/**
 View - set the camera offset according to the screen dimensions and position (...5,3,1,2,4...)
 
 @param {Canvas} canvas
@@ -299,10 +369,6 @@ function View(canvas, fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight
     const context = canvas.getContext('2d');
 
     camera = new THREE.PerspectiveCamera(20, (viewWidth) / (viewHeight), 1, 10000);
-
-    // Orthographic Camera
-    // camera = new THREE.OrthographicCamera
-    //     (-viewWidth, viewWidth, viewHeight, -viewHeight, 1, 10000);
 
     // set camera offset
     camera.setViewOffset(fullWidth, fullHeight, viewX, viewY, viewWidth, viewHeight);
@@ -408,6 +474,11 @@ function init() {
 
                 // all pieces are dead (starting configuration)
                 setTimeout(() => printFen('8/8/8/8/8/8/8/8'), 1000);
+
+                // setTimeout(() => { 
+                //     printFen('rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR');
+                //     setTimeout(() => move('a7','a3'),1000);
+                // },1000);
 
             },
             // called while loading is progressing
@@ -580,10 +651,14 @@ function onDocumentMouseMove(event) {
     });
 }
 
-/*
-move -> move the piece with its consecuneces
-*/
-function move(srcSquare, targetSquare) {
+/**
+ * move -> move the piece with its consecuneces
+ * 
+ * @param {String} srcSquare 
+ * @param {String} targetSquare 
+ * @param {Number} speed = 700
+ */
+function move(srcSquare, targetSquare, speed = 700) {
     let src = [srcSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(srcSquare[1]) - 1];
     let dest = [targetSquare[0].toUpperCase().charCodeAt(0) - 65, parseInt(targetSquare[1]) - 1];
     let movinDistance = 39;
@@ -598,20 +673,20 @@ function move(srcSquare, targetSquare) {
         if (expresion.test(pieceName)) movinDistance = 33;
 
         new TWEEN.Tween(chessboardStatus[dest[0]][dest[1]].position)
-            .to({ x: movinDistance, y: initialPiecePos[pieceName] }, 700)
+            .to({ x: movinDistance, y: initialPiecePos[pieceName] }, speed)
             .start();
     }
 
     // move piece from source square to destination square
     if (chessboardStatus[src[0]][src[1]].parent.name == 'White_Pieces002') { // white
         new TWEEN.Tween(chessboardStatus[src[0]][src[1]].position)
-            .to({ x: (21 - dest[1] * 6), y: (-21 + dest[0] * 6) }, 700)
+            .to({ x: (21 - dest[1] * 6), y: (-21 + dest[0] * 6) }, speed)
             .start();
 
     } else { // black
         color = 'b';
         new TWEEN.Tween(chessboardStatus[src[0]][src[1]].position)
-            .to({ x: (-21 + dest[1] * 6), y: (21 - dest[0] * 6) }, 700)
+            .to({ x: (-21 + dest[1] * 6), y: (21 - dest[0] * 6) }, speed)
             .start();
     }
 
@@ -632,9 +707,17 @@ function move(srcSquare, targetSquare) {
     chessboardStatus[src[0]][src[1]] = null;
 }
 
-/*
-setPiecePos -> set the position of a piece in the visualization and in the status board
-*/
+/**
+ * setPiecePos -> set the position of a piece in the visualization and in the status board
+ * 
+ * @param {String} piece 
+ * @param {String} type 
+ * @param {Number} sx 
+ * @param {Number} sy 
+ * @param {Number} i 
+ * @param {Number} j 
+ * @param {String} color 
+ */
 function setPiecePos(piece, type, sx, sy, i, j, color) {
 
     if (color == 'white') {
@@ -656,7 +739,7 @@ function setPiecePos(piece, type, sx, sy, i, j, color) {
     }
 }
 
-/*
+/**
 printFen -> print the chessboard with the given fen string
 @param {String} fen, Forsyth–Edwards Notation
 */
@@ -757,7 +840,7 @@ function printFen(fen) {
     console.log(chessboardStatus);
 }
 
-/*
+/**
 setDeadPosition -> set the position of a dead piece in the visualization
 @param {String} piece, the piece type (r, n, b, q, k, p)
 @param {Number} type, number of the piece, examaple: p1, p2, ... ,p16, r1, r2
@@ -798,7 +881,7 @@ function animate() {
 
     if (galaxy) {
         // galaxy.rotation.y += 0.001;
-        galaxy.rotation.z += Math.PI/0.5;
+        galaxy.rotation.z += Math.PI / 0.5;
     }
 
     // if (simSpace) {
@@ -899,4 +982,81 @@ function animateStars() {
         // respawn the star when its position is close to the camera
         if (star.position.z > 1500) star.position.z -= 2500;
     }
+}
+
+// DEMO CODE
+// useful variables
+let pointer, demo = [];
+let pause = false;
+let animationSpeed = 700;
+
+/**
+* @param {Object} data, data = {moves: Object}
+*/
+socket.on('startDemo', (data) => {
+    console.log('starting demo screens');
+    // reset board
+    printFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+    // get moves
+    demo = data.moves;
+    console.log('moves: ', demo);
+    // reset pointer & play default (pause = false)
+    pointer = 0;
+    pause = false;
+    // start demo
+    demoMode();
+});
+
+
+/**
+ * forward -> move forwards in the demo
+ */
+socket.on('forward', () => {
+    if(!pause) {pause = true; return; }
+    if(pointer <= demo.length-1) {
+        move(demo[pointer].substring(0,2), demo[pointer].substring(2,4));
+        pointer++;
+    }
+});
+
+/**
+ * backward -> move backwards in the demo
+ */
+socket.on('backward', () => {
+    if(!pause) {pause = true; return; }
+    if(pointer == 0) return;
+    
+    pointer--;
+    printFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+    for(let i = 0; i < pointer; i++) {
+        move(demo[i].substring(0,2), demo[i].substring(2,4), animationSpeed);
+    }
+});
+
+/**
+ * xVel -> set demo speed
+ */
+socket.on('xVel', (data) => {
+    animationSpeed = data.speed;
+});
+
+/**
+ * playpause -> play/pause demo
+ */
+socket.on('playpause', () => {
+    pause = !pause;
+    // if true, then start animation
+    if(!pause) demoMode();
+})
+
+/**
+ * demoMode -> play the demo
+ */
+function demoMode() {
+    move(demo[pointer].substring(0,2), demo[pointer].substring(2,4), animationSpeed);
+    pointer++;
+
+    setTimeout(() => {
+        if(pointer < demo.length-1 && !pause) requestAnimationFrame(demoMode);
+    }, animationSpeed);
 }
