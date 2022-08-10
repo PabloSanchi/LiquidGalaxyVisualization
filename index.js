@@ -103,6 +103,9 @@ io.on('connect', socket => {
         console.log('MOBILE');
         socket.join('mobile');
         okDemo = false;
+
+        socket.to('screen').emit('killDemo');
+
     } else if (socket.handshake.query.controller == 'true') {
         console.log('CONTROLLER');
         socket.join('controller');
@@ -295,6 +298,15 @@ io.on('connect', socket => {
     socket.on('demoBackward', () => {
         io.to('screen').emit('backward');
     });
+
+    socket.on('killAll', () => {
+        console.log('reseting...');
+        socket.to('screen').emit('resetAll');
+    });
+
+    socket.on('demoKill', () => {
+        socket.to('screen').emit('killDemo');
+    })
 });
 
 
@@ -327,7 +339,7 @@ function launch() {
             }
         });
 
-    // child.stderr.on('data', (data) => {console.log(data.toString())});
+    child.stderr.on('data', (data) => {console.log(data.toString())});
 
     child.on('close', function (code) {
         console.log('child process killed');
@@ -353,20 +365,25 @@ try {
 }
 
 // keep alive url by fetching it every 10 seconds
-setInterval(() => {
-    fetch(url, {
-        method: 'GET',
-    })
-    .then(res => res.json())
-    .then(json => {
-        console.log([new Date().getHours(), new Date().getMinutes(), new Date().getSeconds()].join(':'), json);
-    })
-    .catch(err => {
-        console.log('no ssh port anymore, restarting...');
-        if(child) child.kill();
-        launch();
-    });
-}, 10000);
+
+setTimeout(() => {launch()}, 1000);
+
+setTimeout(() => {
+    setInterval(() => {
+        fetch(url, {
+            method: 'GET',
+        })
+        .then(res => res.json())
+        .then(json => {
+            console.log([new Date().getHours(), new Date().getMinutes(), new Date().getSeconds()].join(':'), json);
+        })
+        .catch(err => {
+            console.log('no ssh port anymore, restarting...');
+            if(child) child.kill();
+            launch();
+        });
+    }, 10000);
+}, 15000);
 
 http.listen(port, () => {
     console.log(`Listening:\nhttp://localhost:${port}`);

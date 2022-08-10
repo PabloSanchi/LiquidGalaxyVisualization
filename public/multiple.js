@@ -55,10 +55,11 @@ hidebtn.style.display = 'none';
 hidebtn.addEventListener('click', () => {
     if (logo.style.display === 'none') {
         logo.style.display = 'block';
-        hidebtn.innerHTML = 'Hide';
+        hidebtn.innerHTML = '˄';
     } else {
         logo.style.display = 'none';
-        hidebtn.innerHTML = 'Show';
+        hidebtn.innerHTML = '⌄';
+
     }
 });
 
@@ -66,10 +67,8 @@ hidebtn.addEventListener('click', () => {
 /* SOCKET INFORMATION EXCHANGE */
 socket.on('updateScreen', (coords) => {
     if (screen == 1) return; // do not update the master screen
-
     return;
 });
-
 
 /*
 update: on first connection, retrieve data, screen number
@@ -147,7 +146,7 @@ socket.on('start', (superRes) => {
     if(screen == maxNum) {
         hidebtn.style.display = 'block';
         logo.style.display = 'block';
-        hidebtn.innerHTML = 'Hide';    
+        hidebtn.innerHTML = '˄';    
     }
 
     // start animation
@@ -199,20 +198,6 @@ socket.on('updatePosScreen', (pos) => {
 socket.on('demoMove', (data) => {
     setTimeout(() => { move(data.main[0], data.main[1]) }, data.index * 1000);
 });
-
-/*
-viewlogos -> show or hide the logos
-*/
-socket.on('viewlogos', () => {
-    if (logo.style.display === 'none') {
-        logo.style.display = 'block';
-        hidebtn.innerHTML = 'Hide';
-    } else {
-        logo.style.display = 'none';
-        hidebtn.innerHTML = 'Show';
-    }
-});
-
 
 window.onload = function () {
     document.addEventListener('keydown', onDocumentKeyDown, false);
@@ -554,12 +539,16 @@ function init() {
         loader.load(
             'models/Space/scene.gltf',
             function (gltf) {
+        
                 simSpace = gltf.scene;
+                console.log('simSpace', simSpace);
                 scene.add(simSpace);
 
-                simSpace.position.z = -8000;
-                simSpace.position.x = 3000;
-                // simSpace.scale.set(50, 50, 50);
+                // simSpace.children[0].children[0].children[0].children[0].children[1].visible = false;
+                simSpace.scale.set(12, 12, 12);
+                simSpace.position.z = -4000;
+                simSpace.position.x = 1500;
+                // simSpace.position.x = 3000;
             },
             function (xhr) {
                 console.log((xhr.loaded / xhr.total * 100) + '% loaded');
@@ -606,9 +595,7 @@ function init() {
             function (gltf) {
 
                 galaxy = gltf.scene;
-                // galaxy.position.y -= 1000;
                 scene.add(galaxy);
-
                 // rotate the package
                 galaxy.rotation.x = Math.PI / 1.5;
                 galaxy.position.x -= 750;
@@ -760,6 +747,7 @@ function printFen(fen) {
     white = saveWhite.slice();
     black = saveBlack.slice();
 
+    console.log('fen: ', fen);
     for (let piece of fen) {
 
         if (piece == '/') {
@@ -880,15 +868,10 @@ function animate() {
     animateStars();
 
     if (galaxy) {
-        // galaxy.rotation.y += 0.001;
         galaxy.rotation.z += Math.PI / 0.5;
     }
 
-    // if (simSpace) {
-    //     simSpace.rotation.y += 0.001;
-    // }
-
-    if (earth) {
+    if (simSpace && earth) {
         earth.rotation.y -= 0.0003;
         refreshEarth = (refreshEarth + 1) % 100;
         if (refreshEarth == 0) {
@@ -1047,7 +1030,17 @@ socket.on('playpause', () => {
     pause = !pause;
     // if true, then start animation
     if(!pause) demoMode();
-})
+});
+
+socket.on('resetAll', () => {
+    console.log('reseting');
+    pause = true; animationSpeed = 700; pointer = 0; demo = [];
+    setTimeout(() => {printFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR')}, 1255);
+});
+
+socket.on('killDemo', () => {
+    pause = true; animationSpeed = 700; pointer = 0; demo = [];
+});
 
 /**
  * demoMode -> play the demo
