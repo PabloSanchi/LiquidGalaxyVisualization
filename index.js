@@ -306,7 +306,13 @@ io.on('connect', socket => {
 
     socket.on('demoKill', () => {
         socket.to('screen').emit('killDemo');
-    })
+    });
+
+    socket.on('showVotes', (data) => {
+        console.log('votes recieved', data);
+        socket.to('screen').emit('displayVotes', data);
+    });
+
 });
 
 

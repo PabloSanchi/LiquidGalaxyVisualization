@@ -44,12 +44,13 @@ let chessboardStatus = Array(8).fill(0).map(x => Array(8).fill(null)); // 2d arr
 let initialPiecePos = {};
 /* END VARIABLE DEFINITION */
 
-
 /* LOGO HIDE & UNHIDE */
 // query selector get logo and hidebtn
 const logo = document.querySelector('#logo');
 const hidebtn = document.querySelector('#hidebtn');
+const votes = document.querySelector('#votes');
 hidebtn.style.display = 'none';
+votes.style.display = 'none';
 
 // on click hide or unhide logo with display property
 hidebtn.addEventListener('click', () => {
@@ -65,6 +66,24 @@ hidebtn.addEventListener('click', () => {
 
 
 /* SOCKET INFORMATION EXCHANGE */
+
+socket.on('displayVotes', (data) => {
+    console.log(data);
+    if (screen == 2) {
+        if( votes.style.display == 'none') {
+            votes.style.display = 'block';
+            votes.innerHTML = '';
+            Object.keys(data).map((key, index) => {
+                if(key != 'status' && data[key] > 0) {
+                    votes.innerHTML += `${key.split('_')[0].toUpperCase()} - ${key.split('_')[1].toUpperCase()}: ${data[key]}<br />`                   
+                }
+            });
+
+            console.log(votes.innerHTML);
+        } else votes.style.display = 'none';
+    }
+});
+
 socket.on('updateScreen', (coords) => {
     if (screen == 1) return; // do not update the master screen
     return;
@@ -652,6 +671,7 @@ function move(srcSquare, targetSquare, speed = 700) {
     let color = 'w';
     // console.log(src);
     // console.log(dest);
+    // console.log('order: ' + srcSquare + ' - ' + targetSquare);
 
     // move to death position
     if (chessboardStatus[dest[0]][dest[1]] != null) {
@@ -855,7 +875,7 @@ function setDeadPosition(piece, type, color) {
 
 
 socket.on('refreshEarthScreen', (coord) => {
-    earth.rotation.y = coord.y;
+    if(earth) earth.rotation.y = coord.y;
 });
 
 /*
