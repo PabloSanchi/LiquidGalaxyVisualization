@@ -1,3 +1,8 @@
+[![github-languages-image](https://img.shields.io/github/languages/top/PabloSanchi/LiquidGalaxyVisualization.svg?color=red)]()
+[![github-language-count-image](https://img.shields.io/github/languages/count/PabloSanchi/LiquidGalaxyVisualization.svg)]()
+[![Issues](https://img.shields.io/github/issues/PabloSanchi/LiquidGalaxyVisualization.svg)](https://github.com/PabloSanchi/LiquidGalaxyVisualization/issues)
+[![github-repo-size-image](https://img.shields.io/github/repo-size/PabloSanchi/LiquidGalaxyVisualization.svg?color=yellow)]()
+
 # 🚀 SPACE CHESS
 
 A Newspace related visualization project in collaboration with Hydra-Space.    
