@@ -75,12 +75,12 @@ socket.on('displayVotes', (data) => {
             votes.innerHTML = '';
             Object.keys(data).map((key, index) => {
                 if(key != 'status' && data[key] > 0) {
-                    votes.innerHTML += `${key.split('_')[0].toUpperCase()} - ${key.split('_')[1].toUpperCase()}: ${data[key]}<br />`                   
+                    votes.innerHTML += `${key.split('_')[0].toUpperCase()} - ${key.split('_')[1].toUpperCase()}: ${data[key]}<br/>`
                 }
             });
-
-            console.log(votes.innerHTML);
-        } else votes.style.display = 'none';
+        } else { 
+            votes.style.display = 'none';
+        }
     }
 });
 
