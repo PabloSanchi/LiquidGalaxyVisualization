@@ -1015,6 +1015,7 @@ socket.on('startDemo', (data) => {
  * forward -> move forwards in the demo
  */
 socket.on('forward', () => {
+    if(demo.length == 0) return;
     if(!pause) {pause = true; return; }
     if(pointer <= demo.length-1) {
         move(demo[pointer].substring(0,2), demo[pointer].substring(2,4));
@@ -1026,6 +1027,7 @@ socket.on('forward', () => {
  * backward -> move backwards in the demo
  */
 socket.on('backward', () => {
+    if(demo.length == 0) return;
     if(!pause) {pause = true; return; }
     if(pointer == 0) return;
     
@@ -1047,6 +1049,7 @@ socket.on('xVel', (data) => {
  * playpause -> play/pause demo
  */
 socket.on('playpause', () => {
+    if(demo.length == 0) return;
     pause = !pause;
     // if true, then start animation
     if(!pause) demoMode();
