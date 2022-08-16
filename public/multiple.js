@@ -48,9 +48,9 @@ let initialPiecePos = {};
 // query selector get logo and hidebtn
 const logo = document.querySelector('#logo');
 const hidebtn = document.querySelector('#hidebtn');
-const votes = document.querySelector('#votes');
+// const votes = document.querySelector('#votes');
 hidebtn.style.display = 'none';
-votes.style.display = 'none';
+// votes.style.display = 'none';
 
 // on click hide or unhide logo with display property
 hidebtn.addEventListener('click', () => {
@@ -68,6 +68,7 @@ hidebtn.addEventListener('click', () => {
 /* SOCKET INFORMATION EXCHANGE */
 
 socket.on('displayVotes', (data) => {
+    return;
     console.log(data);
     if (screen == 2) {
         if( votes.style.display == 'none') {
