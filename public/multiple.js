@@ -163,9 +163,9 @@ socket.on('start', (superRes) => {
     console.log('max is: ' + maxNum);
     console.log('screen is: ' + screen);
     if(screen == maxNum) {
-        hidebtn.style.display = 'block';
+        // hidebtn.style.display = 'block';
         logo.style.display = 'block';
-        hidebtn.innerHTML = '˄';    
+        // hidebtn.innerHTML = '˄';    
     }
 
     // start animation
