@@ -68,7 +68,6 @@ hidebtn.addEventListener('click', () => {
 /* SOCKET INFORMATION EXCHANGE */
 
 socket.on('displayVotes', (data) => {
-    return;
     console.log(data);
     if (screen == 2) {
         if( votes.style.display == 'none') {
